@@ -36,7 +36,7 @@ The Harness packages are peer dependencies so the host controls the runtime vers
 The upstream profile-plugin documentation supports installing a TypeScript bundle directly from GitHub:
 
 ```sh
-dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy#444f430
+dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy#028e2ce4167a88ad32b0c6eec89ee22072189e71
 ```
 
 Git installs fetch source, so this package's `prepare` script runs only the standalone `tsdown` build needed to create `dist/`. With pnpm 10 or newer, add the package to the profile's `pnpm-workspace.yaml` build allowlist if pnpm reports that the prepare script is blocked, then retry:
