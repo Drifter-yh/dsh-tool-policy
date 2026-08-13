@@ -43,7 +43,7 @@ Git installs fetch source, so this package's `prepare` script runs only the stan
 
 ```yaml
 allowBuilds:
-  dsh-tool-policy: true
+  'dsh-tool-policy@https://codeload.github.com/Drifter-yh/dsh-tool-policy/tar.gz/5d7d4f15781aca9017bf5f420f6fd6bd6b2c0210': true
 ```
 
 Review and pin the Git commit before allowing install-time code execution. `prepare` does not run tests or depend on a DeepSeek Harness checkout.
