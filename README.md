@@ -4,6 +4,8 @@ Declarative, fail-closed governance for model-requested tools in [DeepSeek Harne
 
 > Community plugin. Not affiliated with or maintained by DeepSeek AI.
 
+Repository: [Drifter-yh/dsh-tool-policy](https://github.com/Drifter-yh/dsh-tool-policy)
+
 `dsh-tool-policy` is a small Cordis plugin that evaluates ordered rules at the public `tools/pre-execute` extension point. It can deny a tool call, route it to Harness's existing human approval seam, or delegate it unchanged. It does not replace the Harness approval, sandbox, timeout, retry, telemetry, or session systems.
 
 ## Why this is needed

@@ -24,7 +24,7 @@ After publication, install it with `pnpm add dsh-tool-policy` and add it to a Co
         reason: 'External tool calls require approval.'
 ```
 
-Repository: `dsh-tool-policy` (the GitHub URL will be inserted after repository creation).
+Repository: https://github.com/Drifter-yh/dsh-tool-policy
 
 The repository includes pure matcher tests, ToolRuntime plugin tests, and a real Cordis Loader composition. It was tested against Harness commit `47f943859bef60e4160492346772ded9b24f765a` (`0.1.0-rc.5`).
 

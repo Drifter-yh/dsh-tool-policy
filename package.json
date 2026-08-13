@@ -4,6 +4,14 @@
   "description": "Declarative, fail-closed tool-call policy for DeepSeek Harness",
   "author": "DeepSeek Harness community contributors",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Drifter-yh/dsh-tool-policy.git"
+  },
+  "homepage": "https://github.com/Drifter-yh/dsh-tool-policy#readme",
+  "bugs": {
+    "url": "https://github.com/Drifter-yh/dsh-tool-policy/issues"
+  },
   "publishConfig": {
     "access": "public"
   },
