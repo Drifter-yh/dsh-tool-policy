@@ -11,8 +11,6 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    env:
-      NPM_CONFIG_MINIMUM_RELEASE_AGE: 0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,10 +18,10 @@ jobs:
           node-version: 22.19.0
       - run: corepack enable
       - run: corepack pnpm install --frozen-lockfile --ignore-scripts --config.minimumReleaseAge=0 --config.strictDepBuilds=false
-      - run: corepack pnpm run typecheck
-      - run: corepack pnpm run lint
-      - run: corepack pnpm run format:check
-      - run: corepack pnpm run test
-      - run: corepack pnpm run build
-      - run: corepack pnpm run integration
+      - run: node_modules/.bin/tsc --noEmit
+      - run: node_modules/.bin/eslint .
+      - run: node_modules/.bin/prettier --check .
+      - run: node_modules/.bin/vitest run --config vitest.config.ts
+      - run: node_modules/.bin/tsdown
+      - run: node_modules/.bin/tsx demo/run-loader.ts
       - run: npm pack --dry-run
