@@ -2,7 +2,12 @@
   "name": "dsh-tool-policy",
   "version": "0.1.0",
   "description": "Declarative, fail-closed tool-call policy for DeepSeek Harness",
+  "author": "DeepSeek Harness community contributors",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
   "type": "module",
   "main": "dist/index.mjs",
   "types": "dist/index.d.mts",

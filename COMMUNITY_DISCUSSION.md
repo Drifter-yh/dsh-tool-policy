@@ -10,6 +10,22 @@ DeepSeek Harness already provides the execution primitives that a production age
 
 `dsh-tool-policy` is an independent Cordis plugin that attaches to the public `tools/pre-execute` waterfall. It compiles ordered tool-name and JSON-Pointer argument rules, then returns `deny`, routes `ask` into the existing Harness approval seam, or delegates `allow` with `next()`. It defaults to deny, never rewrites arguments, never runs tool bodies, and does not create a second audit, timeout, retry, or approval implementation.
 
+After publication, install it with `pnpm add dsh-tool-policy` and add it to a Cordis composition:
+
+```yaml
+- name: 'dsh-tool-policy'
+  config:
+    defaultDecision: deny
+    rules:
+      - tool: 'read_*'
+        decision: allow
+      - tool: 'mcp_*'
+        decision: ask
+        reason: 'External tool calls require approval.'
+```
+
+Repository: `dsh-tool-policy` (the GitHub URL will be inserted after repository creation).
+
 The repository includes pure matcher tests, ToolRuntime plugin tests, and a real Cordis Loader composition. It was tested against Harness commit `47f943859bef60e4160492346772ded9b24f765a` (`0.1.0-rc.5`).
 
 Feedback requested:

@@ -2,6 +2,8 @@
 
 Declarative, fail-closed governance for model-requested tools in [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness).
 
+> Community plugin. Not affiliated with or maintained by DeepSeek AI.
+
 `dsh-tool-policy` is a small Cordis plugin that evaluates ordered rules at the public `tools/pre-execute` extension point. It can deny a tool call, route it to Harness's existing human approval seam, or delegate it unchanged. It does not replace the Harness approval, sandbox, timeout, retry, telemetry, or session systems.
 
 ## Why this is needed
@@ -19,7 +21,7 @@ The plugin is intentionally not an audit logger or approval implementation. The 
 
 ## Installation
 
-When the Harness `0.1` packages are available from the configured registry:
+After this package is published and the Harness `0.1` packages are available from the configured registry:
 
 ```sh
 pnpm add dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
@@ -31,13 +33,16 @@ For the current prerelease source checkout, add the plugin as a local Cordis ent
 
 ## Quick Start
 
-Add the plugin to a Cordis composition:
+Add the community plugin to a Cordis composition. This example is explicitly deny-by-default and allows only tools matched by `read_*` unless another rule handles them:
 
 ```yaml
 - id: tool-policy
   name: 'dsh-tool-policy'
   config:
+    defaultDecision: deny
     rules:
+      - tool: 'read_*'
+        decision: allow
       - tool: 'bash'
         decision: ask
         reason: 'Shell execution requires approval.'
