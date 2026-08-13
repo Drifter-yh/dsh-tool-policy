@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
+import type { Agent } from '@deepseek-ai/dsh-agent'
 import { CallId } from '@deepseek-ai/dsh-llm'
+import { Session, SessionId } from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime, { defineContentToolFixture } from '@deepseek-ai/dsh-tools'
+import ApprovalService, { type ApprovalRequest } from '@deepseek-ai/dsh-user-approval'
 import * as ToolPolicy from '../src/index.ts'
 
 const signal = new AbortController().signal
@@ -27,6 +30,12 @@ function registerProbe(ctx: Context, calls: string[]) {
       },
     }),
   )
+}
+
+function createApprovalAgent(): Agent {
+  const session = Session.create(SessionId('dsh-tool-policy-approval-test'))
+  session.append('turn/start', { turn: 1 })
+  return { session } as Agent
 }
 
 describe('dsh-tool-policy plugin', () => {
@@ -71,6 +80,44 @@ describe('dsh-tool-policy plugin', () => {
       error: { message: 'probe requires a human decision' },
     })
     expect(calls).toEqual([])
+  })
+
+  it('continues an ask only after the official approval seam grants once', async () => {
+    const calls: string[] = []
+    const { ctx } = await setup({
+      rules: [{ tool: 'probe', decision: 'ask', reason: 'probe requires a human decision' }],
+    })
+    await ctx.plugin(ApprovalService)
+    registerProbe(ctx, calls)
+    const agent = createApprovalAgent()
+    const requests: ApprovalRequest[] = []
+    ctx.on('approval/request', async (request) => {
+      requests.push(request)
+      return 'allowed-once'
+    })
+
+    const result = await ctx.tools.execute({
+      callId: CallId('ask-granted-1'),
+      name: 'probe',
+      arguments: { command: 'approved' },
+      agent,
+      signal,
+    })
+
+    expect(result.isError).toBe(false)
+    expect(calls).toEqual(['approved'])
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toMatchObject({
+      agent,
+      toolName: 'probe',
+      callId: CallId('ask-granted-1'),
+      reason: 'probe requires a human decision',
+    })
+    expect(agent.session.events.map((event) => event.type)).toEqual([
+      'turn/start',
+      'approval/asked',
+      'approval/decided',
+    ])
   })
 
   it('delegates allow decisions to later listeners and the tool body', async () => {

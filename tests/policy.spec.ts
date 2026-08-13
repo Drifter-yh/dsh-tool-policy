@@ -7,13 +7,13 @@ describe('compilePolicy', () => {
       defaultDecision: 'allow',
       rules: [
         { tool: 'file.read', decision: 'deny', reason: 'read is disabled' },
-        { tool: 'mcp_*', decision: 'ask', reason: 'MCP calls need approval' },
+        { tool: 'mcp__*', decision: 'ask', reason: 'MCP calls need approval' },
       ],
     })
 
     expect(evaluatePolicy(policy, 'file.read', {})).toMatchObject({ decision: 'deny', reason: 'read is disabled' })
     expect(evaluatePolicy(policy, 'fileXread', {})).toEqual({ decision: 'allow' })
-    expect(evaluatePolicy(policy, 'mcp_write', {})).toMatchObject({ decision: 'ask' })
+    expect(evaluatePolicy(policy, 'mcp__write', {})).toMatchObject({ decision: 'ask' })
   })
 
   it('matches JSON Pointer equality and string containment without exposing arguments in the reason', () => {

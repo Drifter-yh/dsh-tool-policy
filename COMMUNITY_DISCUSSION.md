@@ -19,14 +19,14 @@ After publication, install it with `pnpm add dsh-tool-policy` and add it to a Co
     rules:
       - tool: 'read_*'
         decision: allow
-      - tool: 'mcp_*'
+      - tool: 'mcp__*'
         decision: ask
         reason: 'External tool calls require approval.'
 ```
 
 Repository: https://github.com/Drifter-yh/dsh-tool-policy
 
-The repository includes pure matcher tests, ToolRuntime plugin tests, and a real Cordis Loader composition. It was tested against Harness commit `47f943859bef60e4160492346772ded9b24f765a` (`0.1.0-rc.5`).
+The repository includes pure matcher tests, ToolRuntime plugin tests, and a real Cordis Loader composition. It is validated against the public Harness `0.1.0-rc.6` packages and upstream commit `47f943859bef60e4160492346772ded9b24f765a`.
 
 Feedback requested:
 

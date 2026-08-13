@@ -6,8 +6,8 @@ import { describe, expect, it } from 'vitest'
 describe('real Cordis Loader composition', () => {
   it('loads Harness services, the policy plugin, and a real ToolRuntime fixture', async () => {
     const projectRoot = resolve(import.meta.dirname, '..')
-    const harnessBin = resolve(projectRoot, '../../work/deepseek-harness/vendor/cordis/bin.js')
-    const child = spawn(process.execPath, ['--import', 'tsx', harnessBin], {
+    const demoScript = resolve(projectRoot, 'demo/run-loader.ts')
+    const child = spawn(process.execPath, ['--import', 'tsx', demoScript], {
       cwd: resolve(projectRoot, 'demo'),
       env: { ...process.env, FORCE_COLOR: '0' },
       stdio: ['ignore', 'pipe', 'pipe'],

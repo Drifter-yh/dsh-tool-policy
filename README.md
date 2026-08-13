@@ -14,7 +14,7 @@ DeepSeek Harness already has strong primitives for tool execution: sandbox polic
 
 Typical uses include:
 
-- require approval for an entire tool namespace such as `mcp_*`;
+- require approval for an entire MCP tool namespace such as `mcp__*`;
 - deny a destructive command pattern before the tool body starts;
 - run a deny-by-default allowlist for unattended jobs;
 - keep sensitive argument values out of policy feedback messages.
@@ -23,15 +23,32 @@ The plugin is intentionally not an audit logger or approval implementation. The 
 
 ## Installation
 
-After this package is published and the Harness `0.1` packages are available from the configured registry:
+The public Harness package line is currently `0.1.0-rc.6`:
 
 ```sh
 pnpm add dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
 ```
 
-The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency.
+The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. The upstream source repository currently reports `0.1.0-rc.5` in `master`; this package is tested against the public `0.1.0-rc.6` registry artifacts.
 
-For the current prerelease source checkout, add the plugin as a local Cordis entry and resolve `@deepseek-ai/dsh-tools` from the same Harness checkout. The repository's `demo/` and integration test show that arrangement.
+### GitHub installation
+
+The upstream profile-plugin documentation supports installing a TypeScript bundle directly from GitHub:
+
+```sh
+dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy#c184eb590fed383274823d98a28bf1dd333ee51b
+```
+
+Git installs fetch source, so this package's `prepare` script runs only the standalone `tsdown` build needed to create `dist/`. With pnpm 10 or newer, add the package to the profile's `pnpm-workspace.yaml` build allowlist if pnpm reports that the prepare script is blocked, then retry:
+
+```yaml
+allowBuilds:
+  dsh-tool-policy: true
+```
+
+Review and pin the Git commit before allowing install-time code execution. `prepare` does not run tests or depend on a DeepSeek Harness checkout.
+
+For local development, use the ordinary package-manager workflow from a clean clone: `pnpm install`.
 
 ### Harness profile bundle
 
@@ -72,7 +89,7 @@ Add the community plugin directly to a Cordis composition. This example is expli
       - tool: 'bash'
         decision: ask
         reason: 'Shell execution requires approval.'
-      - tool: 'mcp_*'
+      - tool: 'mcp__*'
         decision: ask
         reason: 'External tool calls require approval.'
       - tool: 'delete_*'
@@ -159,14 +176,15 @@ Expected output contains:
 
 ## Compatibility with DeepSeek Harness
 
-The plugin targets the Harness `0.1.0-rc.5` API and Cordis `4.0.1`, tested against DeepSeek Harness commit `47f943859bef60e4160492346772ded9b24f765a`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The package declares `@deepseek-ai/dsh-tools` and `@deepseek-ai/cordis` as peer dependencies with a `<0.2.0` / `<5` upper bound so API drift is visible at installation time.
+The plugin targets the Harness API range `>=0.1.0-rc.5 <0.2.0` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.0-rc.6` registry packages and upstream commit `47f943859bef60e4160492346772ded9b24f765a`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The peer dependency upper bounds make later API drift visible at installation time.
 
-The package's `dsh.bundle.patch` follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
+The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
+DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp__*` rule covers the complete MCP namespace.
 
 ## Current limitations
 
 - Rules are deployment-global; use multiple Cordis contexts if different agents require different policy trees.
-- The current Harness `0.1.0-rc.5` packages are not yet on the public npm registry, so this checkout's development-only integration dependencies use local tarballs from the matching Harness source checkout. The published plugin package contains only `dist`, `README.md`, and `LICENSE`, and consumes Harness through peer dependencies.
+- The Harness API is still prerelease. The public registry currently provides `0.1.0-rc.6`, while exact `0.1.0-rc.5` package versions are unavailable there; the peer range still begins at rc.5 to reflect the intended API boundary, but fresh registry validation is currently rc.6-only.
 - Matching supports one condition per rule, JSON Pointer scalar equality, or string containment. It does not implement a general expression language.
 - `ask` depends on the Harness approval service and an answerer. The plugin does not provide a UI or automatically approve a request.
 - Policy feedback is intentionally argument-free; an operator must inspect the original tool call in the Harness session or telemetry stream.

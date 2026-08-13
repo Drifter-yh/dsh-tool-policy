@@ -4,7 +4,7 @@ Thanks for improving `dsh-tool-policy`. Keep changes small and focused on the pu
 
 ## Development
 
-The current Harness `0.1.0-rc.5` packages are not yet available from the public npm registry. The checked-in development manifest therefore uses local tarballs generated from the sibling Harness checkout used by the integration test. Before working from a different directory, regenerate those tarballs from the matching Harness commit or replace the development references with the published package versions when they become available.
+The public Harness package line used for reproducible validation is `0.1.0-rc.6`; exact `0.1.0-rc.5` package versions are not currently available from the public registry, while the plugin compatibility range starts at `0.1.0-rc.5`. All development dependencies are registry packages; the repository must not depend on a sibling Harness checkout, local tarball, or private workspace path. The integration test uses the installed Cordis Loader and Include packages directly.
 
 Run the full local checks:
 

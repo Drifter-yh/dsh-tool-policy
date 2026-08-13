@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+          cache: pnpm
+      - run: corepack enable
+      - run: corepack pnpm install --frozen-lockfile --ignore-scripts --config.minimumReleaseAge=0 --config.strictDepBuilds=false
+      - run: corepack pnpm run typecheck
+      - run: corepack pnpm run lint
+      - run: corepack pnpm run format:check
+      - run: corepack pnpm run test
+      - run: corepack pnpm run build
+      - run: corepack pnpm run integration
+      - run: npm pack --dry-run

@@ -4,6 +4,7 @@ import { defineTool } from '@deepseek-ai/dsh-tools'
 
 export const name = 'dsh-tool-policy-runtime-fixture'
 export const inject = ['tools']
+export let completed: Promise<void> = Promise.resolve()
 
 export function apply(ctx: Context): void {
   let executed = 0
@@ -36,7 +37,7 @@ export function apply(ctx: Context): void {
     }),
   )
 
-  void (async () => {
+  completed = (async () => {
     const blocked = await ctx.tools.execute({
       callId: CallId('demo-delete'),
       name: 'delete_record',

@@ -3,4 +3,5 @@ dist/
 coverage/
 .vite/
 *.log
+*.tgz
 .DS_Store

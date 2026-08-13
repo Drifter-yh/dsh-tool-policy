@@ -1,6 +1,6 @@
 # Research and design note
 
-This plugin was designed against DeepSeek Harness commit `47f943859bef60e4160492346772ded9b24f765a` (`0.1.0-rc.5`) after reading the repository's `AGENTS.md`, `CONTRIBUTING.md`, architecture and Cordis documents, the tool execution pipeline, session and approval subsystem contracts, and the official guard, timeout, telemetry, permission, and tool packages.
+This plugin was designed against DeepSeek Harness commit `47f943859bef60e4160492346772ded9b24f765a`, targets the `>=0.1.0-rc.5 <0.2.0` API range, and is validated against the public `0.1.0-rc.6` package line after reading the repository's `AGENTS.md`, `CONTRIBUTING.md`, architecture and Cordis documents, the tool execution pipeline, session and approval subsystem contracts, and the official guard, timeout, telemetry, permission, and tool packages.
 
 ## Findings
 
