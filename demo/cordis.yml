@@ -1,0 +1,25 @@
+- id: system-prompt
+  name: '@deepseek-ai/dsh-system-prompt'
+
+- id: tools
+  name: '@deepseek-ai/dsh-tools'
+
+- id: tool-policy
+  name: '../src/index.ts'
+  config:
+    defaultDecision: deny
+    rules:
+      - tool: read_record
+        decision: allow
+      - tool: delete_record
+        decision: deny
+        reason: deleting records is disabled in the demo
+      - tool: bash
+        decision: deny
+        reason: shell execution is disabled in this composition
+        argument:
+          path: /command
+          contains: 'rm -rf'
+
+- id: fixture
+  name: './fixture.ts'

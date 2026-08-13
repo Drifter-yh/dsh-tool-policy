@@ -1,0 +1,79 @@
+{
+  "name": "dsh-tool-policy",
+  "version": "0.1.0",
+  "description": "Declarative, fail-closed tool-call policy for DeepSeek Harness",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./policy": {
+      "types": "./dist/policy.d.mts",
+      "import": "./dist/policy.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh-plugin",
+    "cordis",
+    "agent-security",
+    "tool-governance",
+    "guardrails"
+  ],
+  "engines": {
+    "node": ">=22.19"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.1 <5",
+    "@deepseek-ai/dsh-tools": ">=0.1.0-rc.5 <0.2.0"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/cordis-plugin-include": "file:../../work/plugin-packs/deepseek-ai-cordis-plugin-include-1.0.6.tgz",
+    "@deepseek-ai/cordis-plugin-loader": "file:../../work/plugin-packs/deepseek-ai-cordis-plugin-loader-1.0.2.tgz",
+    "@deepseek-ai/dsh-agent": "file:../../work/plugin-packs/deepseek-ai-dsh-agent-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-attachment": "file:../../work/plugin-packs/deepseek-ai-dsh-attachment-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-brand": "file:../../work/plugin-packs/deepseek-ai-dsh-brand-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-code-runtime": "file:../../work/plugin-packs/deepseek-ai-dsh-code-runtime-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-invariants": "file:../../work/plugin-packs/deepseek-ai-dsh-invariants-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-llm": "file:../../work/plugin-packs/deepseek-ai-dsh-llm-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-scope": "file:../../work/plugin-packs/deepseek-ai-dsh-scope-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-session": "file:../../work/plugin-packs/deepseek-ai-dsh-session-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-system-prompt": "file:../../work/plugin-packs/deepseek-ai-dsh-system-prompt-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-timeout": "file:../../work/plugin-packs/deepseek-ai-dsh-timeout-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-tools": "file:../../work/plugin-packs/deepseek-ai-dsh-tools-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-typert-protocol": "file:../../work/plugin-packs/deepseek-ai-dsh-typert-protocol-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-typert-registry": "file:../../work/plugin-packs/deepseek-ai-dsh-typert-registry-0.1.0-rc.5.tgz",
+    "@deepseek-ai/dsh-user-approval": "file:../../work/plugin-packs/deepseek-ai-dsh-user-approval-0.1.0-rc.5.tgz",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "@types/node": "^22.20.0",
+    "eslint": "^9.32.0",
+    "prettier": "^3.6.2",
+    "tsdown": "^0.22.2",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --config vitest.config.ts",
+    "demo": "tsx demo/run-loader.ts",
+    "integration": "tsx demo/run-loader.ts"
+  }
+}
