@@ -27,12 +27,14 @@
     "./policy": {
       "types": "./dist/policy.d.mts",
       "import": "./dist/policy.mjs"
-    }
+    },
+    "./cordis.patch.yml": "./cordis.patch.yml"
   },
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "cordis.patch.yml"
   ],
   "keywords": [
     "deepseek-harness",
@@ -44,6 +46,11 @@
   ],
   "engines": {
     "node": ">=22.19"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": ">=4.0.1 <5",

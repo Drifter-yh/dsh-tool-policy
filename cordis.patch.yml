@@ -1,0 +1,8 @@
+# DeepSeek Harness bundle layer. The row is intentionally deny-by-default;
+# configure its complete config in the profile's later cordis.patch.yml layer.
+- insert:
+    - id: tool-policy
+      name: dsh-tool-policy
+      config:
+        defaultDecision: deny
+        rules: []

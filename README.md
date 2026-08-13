@@ -33,9 +33,33 @@ The Harness packages are peer dependencies so the host controls the runtime vers
 
 For the current prerelease source checkout, add the plugin as a local Cordis entry and resolve `@deepseek-ai/dsh-tools` from the same Harness checkout. The repository's `demo/` and integration test show that arrangement.
 
+### Harness profile bundle
+
+The package also follows Harness's official profile-bundle contract: its `package.json` declares `dsh.bundle.patch`, and the published package contains `cordis.patch.yml`. Install it into a profile with:
+
+```sh
+dsh plugin --profile my-profile add dsh-tool-policy
+```
+
+That activates one `tool-policy` row with `defaultDecision: deny` and no rules. Before starting an agent, configure the row in `$DSH_HOME/profiles/my-profile/cordis.patch.yml`:
+
+```yaml
+- id: tool-policy
+  config:
+    defaultDecision: deny
+    rules:
+      - tool: 'read_*'
+        decision: allow
+      - tool: 'bash'
+        decision: ask
+        reason: 'Shell execution requires approval.'
+```
+
+Harness profile patches target the row by id and replace its whole `config`; repeat every configuration field you want to keep. The bundle patch is only a composition layer: the plugin remains usable as a direct Cordis entry.
+
 ## Quick Start
 
-Add the community plugin to a Cordis composition. This example is explicitly deny-by-default and allows only tools matched by `read_*` unless another rule handles them:
+Add the community plugin directly to a Cordis composition. This example is explicitly deny-by-default and allows only tools matched by `read_*` unless another rule handles them:
 
 ```yaml
 - id: tool-policy
@@ -136,6 +160,8 @@ Expected output contains:
 ## Compatibility with DeepSeek Harness
 
 The plugin targets the Harness `0.1.0-rc.5` API and Cordis `4.0.1`, tested against DeepSeek Harness commit `47f943859bef60e4160492346772ded9b24f765a`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The package declares `@deepseek-ai/dsh-tools` and `@deepseek-ai/cordis` as peer dependencies with a `<0.2.0` / `<5` upper bound so API drift is visible at installation time.
+
+The package's `dsh.bundle.patch` follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
 
 ## Current limitations
 
