@@ -16,7 +16,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.19.0
-          cache: pnpm
       - run: corepack enable
       - run: corepack pnpm install --frozen-lockfile --ignore-scripts --config.minimumReleaseAge=0 --config.strictDepBuilds=false
       - run: corepack pnpm run typecheck
