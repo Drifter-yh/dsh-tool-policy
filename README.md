@@ -6,7 +6,7 @@ Declarative, fail-closed governance for model-requested tools in [DeepSeek Harne
 
 Repository: [Drifter-yh/dsh-tool-policy](https://github.com/Drifter-yh/dsh-tool-policy)
 
-`dsh-tool-policy` is a small Cordis plugin that evaluates ordered rules at the public `tools/pre-execute` extension point. It can deny a tool call, route it to Harness's existing human approval seam, or delegate it unchanged. It does not replace the Harness approval, sandbox, timeout, retry, telemetry, or session systems.
+`dsh-tool-policy` is a small Cordis plugin that evaluates ordered rules at the public `tools/pre-execute` extension point. It can deny a tool call, route it to Harness's existing human approval seam, or delegate it unchanged. It does not replace the Harness approval, sandbox, timeout, retry, telemetry, or session systems. It is a per-call policy and routing layer, not a capability sandbox.
 
 ## Why this is needed
 
@@ -15,11 +15,25 @@ DeepSeek Harness already has strong primitives for tool execution: sandbox polic
 Typical uses include:
 
 - require approval for an entire MCP tool namespace such as `mcp__*`;
-- deny a destructive command pattern before the tool body starts;
-- run a deny-by-default allowlist for unattended jobs;
+- deny a known destructive command pattern before the matched tool body starts;
+- run a deny-by-default tool-call allowlist for unattended jobs;
 - keep sensitive argument values out of policy feedback messages.
 
 The plugin is intentionally not an audit logger or approval implementation. The Harness already owns those seams.
+
+## Security model
+
+The plugin operates on individual tool calls. Its rules match observable tool names and optional argument patterns before the tool body runs:
+
+- **Harness sandbox:** Can this agent perform this class of operation at all? Harness sandboxing and runtime isolation are the layers responsible for enforcing capabilities such as filesystem writes or deletes, network access, and process execution.
+- **Tool policy:** Should this particular known tool call be allowed, denied, or escalated? A matching `deny` prevents that call from executing; it does not revoke the underlying capability.
+- **Harness approval:** Should an escalated `ask` call receive a one-shot human verdict?
+
+A rule that matches one shell argument pattern, such as `rm -rf /foo`, only governs that call shape. A different tool or command sequence may produce the same effect. Tool policy and capability sandboxing are therefore complementary layers; production deployments should combine policy routing with a restrictive Harness sandbox.
+
+### What this does not do
+
+`dsh-tool-policy` does not implement sandboxing, capability enforcement, shell semantic analysis, or equivalent-operation detection. A `deny` rule makes the matched call unavailable, not destructive behavior impossible in general. It does not rewrite arguments or execute tool bodies.
 
 ## Installation
 
@@ -97,7 +111,7 @@ Add the community plugin directly to a Cordis composition. This example is expli
         reason: 'Delete operations are disabled in this deployment.'
 ```
 
-The plugin is fail-closed when mounted: the default decision is `deny`, so only explicitly allowed calls run. Set `defaultDecision: allow` only when intentionally deploying a targeted or advisory policy.
+The plugin is fail-closed at the tool-call layer when mounted: the default decision is `deny`, so only explicitly allowed calls run. Set `defaultDecision: allow` only when intentionally deploying a targeted or advisory policy.
 
 ## Configuration
 
@@ -188,7 +202,7 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 - Matching supports one condition per rule, JSON Pointer scalar equality, or string containment. It does not implement a general expression language.
 - `ask` depends on the Harness approval service and an answerer. The plugin does not provide a UI or automatically approve a request.
 - Policy feedback is intentionally argument-free; an operator must inspect the original tool call in the Harness session or telemetry stream.
-- The plugin is a pre-dispatch policy, not a hard OS boundary. Use the Harness sandbox for filesystem and process confinement.
+- The plugin is a per-call pre-dispatch policy, not capability enforcement. Use the Harness sandbox for filesystem, network, and process confinement.
 
 ## Roadmap
 
