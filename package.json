@@ -1,6 +1,6 @@
 {
   "name": "dsh-tool-policy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Allow, ask, or deny DeepSeek Harness tool calls before execution",
   "author": "DeepSeek Harness community contributors",
   "license": "MIT",
@@ -82,6 +82,7 @@
     "@typescript-eslint/parser": "^8.67.0",
     "@types/node": "^22.20.0",
     "eslint": "^9.32.0",
+    "js-yaml": "^4.3.1",
     "prettier": "^3.6.2",
     "tsdown": "^0.22.2",
     "tsx": "^4.22.4",

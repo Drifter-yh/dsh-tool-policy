@@ -26,7 +26,7 @@ After publication, install it with `pnpm add dsh-tool-policy` and add it to a Co
 
 Repository: https://github.com/Drifter-yh/dsh-tool-policy
 
-The repository includes pure matcher tests, ToolRuntime plugin tests, and a real Cordis Loader composition. It is validated against the public Harness `0.1.0-rc.6` packages and upstream commit `47f943859bef60e4160492346772ded9b24f765a`.
+The repository includes pure matcher tests, ToolRuntime plugin tests, a real Cordis Loader composition, and an opt-in argument-free policy decision trace. It is validated against the public Harness `0.1.0-rc.6` packages and upstream commit `47f943859bef60e4160492346772ded9b24f765a`.
 
 Feedback requested:
 
@@ -35,3 +35,14 @@ Feedback requested:
 - Which policy presets would be useful without turning this into a second enterprise policy engine?
 
 Topics suggested for the repository: `dsh-plugin`, `deepseek-harness`, `cordis`, `agent-security`, `tool-governance`.
+
+## Follow-up update draft
+
+Publish this once the corresponding release is actually available; replace the placeholder with the release URL:
+
+> `dsh-tool-policy` now has an opt-in policy decision trace. When `trace: true` is enabled, the Cordis logger records the tool name, this plugin's allow/ask/deny decision, and the matched rule number without copying tool arguments. The trace is best-effort and does not replace Harness audit or sandbox enforcement.
+>
+> Release: `<release URL>`
+> Repository: https://github.com/Drifter-yh/dsh-tool-policy
+>
+> Feedback on real-world MCP and unattended-agent policies is welcome.

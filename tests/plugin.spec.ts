@@ -18,10 +18,10 @@ async function setup(config: ToolPolicy.Config) {
   return { ctx, policyFiber }
 }
 
-function registerProbe(ctx: Context, calls: string[]) {
+function registerProbe(ctx: Context, calls: string[], name = 'probe') {
   ctx.tools.register(
     defineContentToolFixture({
-      name: 'probe',
+      name,
       description: 'records one probe call',
       parameters: { command: { type: 'string', required: true } },
       async execute(args) {
@@ -32,6 +32,18 @@ function registerProbe(ctx: Context, calls: string[]) {
   )
 }
 
+function capturePolicyTraces(ctx: Context): unknown[] {
+  const traces: unknown[] = []
+  ctx.logger.exporter({
+    export(message) {
+      if (message.name === ToolPolicy.name && message.args[0] === 'policy decision %o') {
+        traces.push(message.args[1])
+      }
+    },
+  })
+  return traces
+}
+
 function createApprovalAgent(): Agent {
   const session = Session.create(SessionId('dsh-tool-policy-approval-test'))
   session.append('turn/start', { turn: 1 })
@@ -39,6 +51,88 @@ function createApprovalAgent(): Agent {
 }
 
 describe('dsh-tool-policy plugin', () => {
+  it('keeps decision tracing disabled by default', async () => {
+    const calls: string[] = []
+    const { ctx } = await setup({ rules: [{ tool: 'probe', decision: 'deny', reason: 'probe is disabled' }] })
+    const traces = capturePolicyTraces(ctx)
+    registerProbe(ctx, calls)
+
+    await ctx.tools.execute({
+      callId: CallId('trace-disabled-1'),
+      name: 'probe',
+      arguments: { command: 'secret-value' },
+      signal,
+    })
+
+    expect(traces).toEqual([])
+  })
+
+  it('emits an opt-in trace with the matched rule but without arguments', async () => {
+    const calls: string[] = []
+    const { ctx } = await setup({
+      trace: true,
+      rules: [{ tool: 'probe', decision: 'deny', reason: 'probe is disabled' }],
+    })
+    const traces = capturePolicyTraces(ctx)
+    registerProbe(ctx, calls)
+    registerProbe(ctx, calls, 'other')
+
+    await ctx.tools.execute({
+      callId: CallId('trace-enabled-1'),
+      name: 'probe',
+      arguments: { command: 'secret-value' },
+      signal,
+    })
+    await ctx.tools.execute({
+      callId: CallId('trace-enabled-2'),
+      name: 'other',
+      arguments: { command: 'another-secret-value' },
+      signal,
+    })
+
+    expect(traces).toEqual([
+      {
+        toolName: 'probe',
+        decision: 'deny',
+        matchedRule: 1,
+        reason: 'probe is disabled',
+      },
+      {
+        toolName: 'other',
+        decision: 'deny',
+        matchedRule: null,
+        reason: 'tool "other" denied because no policy rule matched',
+      },
+    ])
+    expect(JSON.stringify(traces)).not.toContain('secret-value')
+    expect(JSON.stringify(traces)).not.toContain('another-secret-value')
+    expect(calls).toEqual([])
+  })
+
+  it('keeps the policy outcome when a trace exporter throws', async () => {
+    const calls: string[] = []
+    const { ctx } = await setup({
+      trace: true,
+      rules: [{ tool: 'probe', decision: 'deny', reason: 'probe is disabled' }],
+    })
+    ctx.logger.exporter({
+      export() {
+        throw new Error('trace sink failed')
+      },
+    })
+    registerProbe(ctx, calls)
+
+    const result = await ctx.tools.execute({
+      callId: CallId('trace-failure-1'),
+      name: 'probe',
+      arguments: { command: 'never-run' },
+      signal,
+    })
+
+    expect(result).toMatchObject({ isError: true, error: { message: 'probe is disabled' } })
+    expect(calls).toEqual([])
+  })
+
   it('denies before the tool body and preserves the configured reason', async () => {
     const calls: string[] = []
     const { ctx } = await setup({

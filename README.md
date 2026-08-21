@@ -136,6 +136,7 @@ The plugin is fail-closed at the tool-call layer when mounted: the default decis
 
 ```yaml
 defaultDecision: deny # deny (default), ask, or allow
+trace: false # emit an argument-free decision trace through the Cordis logger
 rules:
   # First matching rule wins.
   - tool: 'bash'
@@ -170,6 +171,22 @@ Decision semantics:
 - `defaultDecision` applies only when no rule matches.
 
 Reasons never interpolate the call arguments. This avoids copying secrets or large payloads into model-visible approval feedback.
+
+### Policy decision trace
+
+Set `trace: true` when operators need to understand why this plugin produced a decision:
+
+```yaml
+trace: true
+rules:
+  - tool: 'read_*'
+    decision: allow
+  - tool: 'bash'
+    decision: ask
+    reason: 'Shell execution requires approval.'
+```
+
+The plugin writes an `info` record through the Cordis logger with the tool name, this plugin's decision, the one-based matched rule number (or `null` when `defaultDecision` was used), and the configured reason for `ask` or `deny`. It never includes parsed tool arguments. Tracing is disabled by default, is best-effort, and does not replace Harness session audit events; a later policy listener or monotonic tool guard may still change whether an allowed call executes.
 
 ## Architecture
 
@@ -225,10 +242,19 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 
 ## Roadmap
 
-- add an optional policy decision trace through an opt-in plugin-owned observer, without duplicating session audit events;
-- add reusable policy presets for common MCP, filesystem, and CI deployments;
-- validate compatibility against the first stable Harness `0.1` release and publish a matching package version;
-- consider a separate, independently scoped rate-limit plugin if deployments need time-window quotas.
+### Implemented
+
+- [x] Opt-in, argument-free policy decision tracing through the Cordis logger
+
+### Next
+
+- [ ] Add reusable routing-oriented policy presets for common MCP and unattended deployments
+- [ ] Add copyable MCP, filesystem, and unattended-agent recipes
+
+### Future
+
+- [ ] Validate compatibility against the first stable Harness `0.1` release and publish a matching package version
+- [ ] Consider a separate, independently scoped rate-limit plugin if deployments need time-window quotas
 
 ## Development
 

@@ -20,6 +20,10 @@ Harness has no generic, declarative policy layer that can inspect every tool cal
 
 The plugin injects `tools` and registers one `tools/pre-execute` listener. The listener sees the immutable, already-recorded call identity and parsed arguments. This keeps the plugin independent from `agent-loop`, `Session`, tool providers, and UI implementations.
 
+## Decision trace
+
+When `trace: true`, the listener sends an argument-free record through the Cordis logger after evaluating the policy. The record identifies the tool, this plugin's decision, the one-based matched rule number (or the default-policy marker), and the configured gated reason. It does not add a durable session event or duplicate Harness audit data. Logger exporter failures are contained so observability cannot change the allow, ask, or deny result.
+
 ## API stability isolation
 
 All Harness-specific imports are confined to `src/index.ts`; the compiler and matcher live in `src/policy.ts` with no Cordis dependency. The integration tests exercise the real Loader and ToolRuntime path. The package declares Harness services as peer dependencies, so an application controls the exact compatible Harness version.
