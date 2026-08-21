@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [0.2.0] - 2026-08-21
 
 ### Added
 
@@ -15,3 +15,7 @@
 
 - Document trace configuration and its boundary relative to Harness session audit and capability sandboxing.
 - Clarify the next roadmap items for presets, real-world recipes, and stable Harness compatibility.
+
+## Unreleased
+
+Future changes will be recorded here.
