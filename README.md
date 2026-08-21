@@ -1,12 +1,14 @@
 # dsh-tool-policy
 
-Declarative, fail-closed governance for model-requested tools in [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness).
+[English](README.md) | [简体中文](README.zh-CN.md)
+
+A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) plugin that applies **allow, ask, or deny** rules to tool calls before they execute.
+
+It provides a declarative, deny-by-default policy layer for built-in, third-party, and MCP tools, while reusing Harness's existing approval and sandbox mechanisms. It is a per-call policy layer, not a capability sandbox.
 
 > Community plugin. Not affiliated with or maintained by DeepSeek AI.
 
 Repository: [Drifter-yh/dsh-tool-policy](https://github.com/Drifter-yh/dsh-tool-policy)
-
-`dsh-tool-policy` is a small Cordis plugin that evaluates ordered rules at the public `tools/pre-execute` extension point. It can deny a tool call, route it to Harness's existing human approval seam, or delegate it unchanged. It does not replace the Harness approval, sandbox, timeout, retry, telemetry, or session systems. It is a per-call policy and routing layer, not a capability sandbox.
 
 ## Why this is needed
 
@@ -14,10 +16,27 @@ DeepSeek Harness already has strong primitives for tool execution: sandbox polic
 
 Typical uses include:
 
-- require approval for an entire MCP tool namespace such as `mcp__*`;
+- allow selected tool namespaces or families such as `read_*`;
+- require human approval for MCP or other external tools such as `mcp__*`;
 - deny a known destructive command pattern before the matched tool body starts;
 - run a deny-by-default tool-call allowlist for unattended jobs;
 - keep sensitive argument values out of policy feedback messages.
+
+A typical call path looks like this:
+
+```text
+Agent wants to call a tool
+          |
+          v
+    dsh-tool-policy
+          |
+   +------+------+
+   |      |      |
+ allow   ask    deny
+   |      |      |
+continue Harness stop before
+pipeline approval tool body
+```
 
 The plugin is intentionally not an audit logger or approval implementation. The Harness already owns those seams.
 
@@ -25,9 +44,9 @@ The plugin is intentionally not an audit logger or approval implementation. The 
 
 The plugin operates on individual tool calls. Its rules match observable tool names and optional argument patterns before the tool body runs:
 
-- **Harness sandbox:** Can this agent perform this class of operation at all? Harness sandboxing and runtime isolation are the layers responsible for enforcing capabilities such as filesystem writes or deletes, network access, and process execution.
-- **Tool policy:** Should this particular known tool call be allowed, denied, or escalated? A matching `deny` prevents that call from executing; it does not revoke the underlying capability.
-- **Harness approval:** Should an escalated `ask` call receive a one-shot human verdict?
+- **Harness sandbox — capability enforcement:** Can this agent perform this class of operation at all? Harness sandboxing and runtime isolation are the layers responsible for enforcing capabilities such as filesystem writes or deletes, network access, and process execution.
+- **dsh-tool-policy — per-call policy / routing:** Should this particular known tool call be allowed, denied, or escalated? A matching `deny` prevents that call from executing; it does not revoke the underlying capability.
+- **Harness Approval — human escalation verdict:** Should an escalated `ask` call receive a one-shot human verdict?
 
 A rule that matches one shell argument pattern, such as `rm -rf /foo`, only governs that call shape. A different tool or command sequence may produce the same effect. Tool policy and capability sandboxing are therefore complementary layers; production deployments should combine policy routing with a restrictive Harness sandbox.
 
