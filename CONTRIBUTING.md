@@ -19,3 +19,21 @@ pnpm integration
 ```
 
 Changes to `src/index.ts` should stay limited to Cordis/Harness integration. Keep policy compilation and matching in `src/policy.ts` independent of Cordis so it can be tested and reused without a running agent.
+
+## Contributions
+
+### Bug reports
+
+Include the Harness/Cordis package versions, a minimal policy, the observed decision, and whether the call used a direct tool or an MCP namespace. Do not include secrets or raw production tool arguments; redact them or provide a synthetic fixture.
+
+### Feature proposals
+
+Explain the deployment problem and why it belongs in this per-call routing layer instead of Harness sandboxing, approval, telemetry, or another existing plugin. Proposals should preserve explicit rule order and fail-closed behavior unless a change is intentionally scoped and documented.
+
+### Policy examples
+
+Real-world, sanitized policy use cases are especially useful. Please include the tool names, the intended `allow`/`ask`/`deny` behavior, the relevant sandbox assumption, and any equivalent-operation limitation that operators should understand.
+
+### Pull requests
+
+Keep pull requests focused. Add tests for allow, ask, deny, unmatched rules, malformed configuration, and compatibility-sensitive behavior when applicable. Update both README files and the changelog for user-visible configuration changes. Decision traces and reasons must not copy parsed tool arguments.
