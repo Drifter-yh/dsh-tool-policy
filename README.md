@@ -56,27 +56,27 @@ A rule that matches one shell argument pattern, such as `rm -rf /foo`, only gove
 
 ## Installation
 
-The public Harness package line is currently `0.1.0-rc.6`:
+The public Harness package line is currently `0.1.1-rc.2`:
 
 ```sh
 pnpm add dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
 ```
 
-The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. The upstream source repository currently reports `0.1.0-rc.5` in `master`; this package is tested against the public `0.1.0-rc.6` registry artifacts.
+The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. The upstream source repository currently reports `0.1.1-rc.2` in `master`; this package is tested against the public `0.1.1-rc.2` registry artifacts.
 
 ### GitHub installation
 
 The upstream profile-plugin documentation supports installing a TypeScript bundle directly from GitHub:
 
 ```sh
-dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy#028e2ce4167a88ad32b0c6eec89ee22072189e71
+dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy#e6f43c255345a6f6bbab66ee8c053a2e5457e3c7
 ```
 
 Git installs fetch source, so this package's `prepare` script runs only the standalone `tsdown` build needed to create `dist/`. With pnpm 10 or newer, add the package to the profile's `pnpm-workspace.yaml` build allowlist if pnpm reports that the prepare script is blocked, then retry:
 
 ```yaml
 allowBuilds:
-  'dsh-tool-policy@https://codeload.github.com/Drifter-yh/dsh-tool-policy/tar.gz/5d7d4f15781aca9017bf5f420f6fd6bd6b2c0210': true
+  'dsh-tool-policy@git+https://github.com/Drifter-yh/dsh-tool-policy.git#e6f43c255345a6f6bbab66ee8c053a2e5457e3c7': true
 ```
 
 Review and pin the Git commit before allowing install-time code execution. `prepare` does not run tests or depend on a DeepSeek Harness checkout.
@@ -226,7 +226,7 @@ Expected output contains:
 
 ## Compatibility with DeepSeek Harness
 
-The plugin targets the Harness API range `>=0.1.0-rc.5 <0.2.0` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.0-rc.6` registry packages and upstream commit `47f943859bef60e4160492346772ded9b24f765a`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The peer dependency upper bounds make later API drift visible at installation time.
+The plugin targets the Harness API range `>=0.1.0-rc.5 <0.2.0` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.1-rc.2` registry packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The peer dependency upper bounds make later API drift visible at installation time.
 
 The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
 DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp__*` rule covers the complete MCP namespace.
@@ -234,7 +234,7 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 ## Current limitations
 
 - Rules are deployment-global; use multiple Cordis contexts if different agents require different policy trees.
-- The Harness API is still prerelease. The public registry currently provides `0.1.0-rc.6`, while exact `0.1.0-rc.5` package versions are unavailable there; the peer range still begins at rc.5 to reflect the intended API boundary, but fresh registry validation is currently rc.6-only.
+- The Harness API is still prerelease. This package is freshly validated against the complete public `0.1.1-rc.2` registry matrix and upstream tag `dsh-v0.1.1-rc.2`; the peer range still begins at rc.5 to reflect the intended API boundary, and the `<0.2.0` upper bound keeps later API drift visible.
 - Matching supports one condition per rule, JSON Pointer scalar equality, or string containment. It does not implement a general expression language.
 - `ask` depends on the Harness approval service and an answerer. The plugin does not provide a UI or automatically approve a request.
 - Policy feedback is intentionally argument-free; an operator must inspect the original tool call in the Harness session or telemetry stream.

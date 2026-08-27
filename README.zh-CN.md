@@ -56,27 +56,27 @@ pipeline approval tool body
 
 ## 安装
 
-当前公开的 Harness package line 是 `0.1.0-rc.6`：
+当前公开的 Harness package line 是 `0.1.1-rc.2`：
 
 ```sh
 pnpm add dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
 ```
 
-Harness packages 是 peer dependencies，由宿主控制 runtime 版本。`@deepseek-ai/schemastery` 是插件的普通 runtime dependency。上游 source repository 当前在 `master` 报告的版本是 `0.1.0-rc.5`；本 package 针对公开 registry artifacts 中的 `0.1.0-rc.6` 测试。
+Harness packages 是 peer dependencies，由宿主控制 runtime 版本。`@deepseek-ai/schemastery` 是插件的普通 runtime dependency。上游 source repository 当前在 `master` 报告的版本是 `0.1.1-rc.2`；本 package 针对公开 registry artifacts 中的 `0.1.1-rc.2` 测试。
 
 ### 从 GitHub 安装
 
 上游 profile-plugin 文档支持直接从 GitHub 安装 TypeScript bundle：
 
 ```sh
-dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy#028e2ce4167a88ad32b0c6eec89ee22072189e71
+dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy#e6f43c255345a6f6bbab66ee8c053a2e5457e3c7
 ```
 
 Git 安装会拉取 source，因此这个 package 的 `prepare` script 只运行生成 `dist/` 所需的独立 `tsdown` build。如果 pnpm 10 或更新版本报告 `prepare` script 被阻止，请将 package 加入 profile 的 `pnpm-workspace.yaml` build allowlist，然后重试：
 
 ```yaml
 allowBuilds:
-  'dsh-tool-policy@https://codeload.github.com/Drifter-yh/dsh-tool-policy/tar.gz/5d7d4f15781aca9017bf5f420f6fd6bd6b2c0210': true
+  'dsh-tool-policy@git+https://github.com/Drifter-yh/dsh-tool-policy.git#e6f43c255345a6f6bbab66ee8c053a2e5457e3c7': true
 ```
 
 允许安装时执行代码前，请检查并固定 Git commit。`prepare` 不会运行测试，也不依赖 DeepSeek Harness checkout。
@@ -226,7 +226,7 @@ pnpm integration
 
 ## 与 DeepSeek Harness 的兼容性
 
-插件目标 Harness API 范围为 `>=0.1.0-rc.5 <0.2.0`，Cordis 范围为 `>=4.0.1 <5`。当前使用公开的 `0.1.0-rc.6` registry packages 和上游 commit `47f943859bef60e4160492346772ded9b24f765a` 验证。与 Harness 相关的代码只使用文档化的 `Context`、`tools` service 和 `tools/pre-execute` event。peer dependency 的上界会让后续 API 漂移在安装时显现。
+插件目标 Harness API 范围为 `>=0.1.0-rc.5 <0.2.0`，Cordis 范围为 `>=4.0.1 <5`。当前使用公开的 `0.1.1-rc.2` registry packages 和上游 tag `dsh-v0.1.1-rc.2`（commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`）验证。与 Harness 相关的代码只使用文档化的 `Context`、`tools` service 和 `tools/pre-execute` event。peer dependency 的上界会让后续 API 漂移在安装时显现。
 
 package 的 `dsh.bundle.patch` metadata 遵循 Harness profile-bundle specification。`cordis.patch.yml` 按 package name 插入插件，profile composition 会在 profile 自己的 patch 之前应用这一层。bundle 默认 `deny` 且规则列表为空；运行工具前，请在 profile layer 配置插入的 `tool-policy` row。
 
@@ -235,7 +235,7 @@ DeepSeek Harness 将 MCP tools 暴露为 `mcp__<serverName>__<rawName>`，因此
 ## 当前限制
 
 - 规则是 deployment-global 的；如果不同 agent 需要不同的 policy tree，请使用多个 Cordis context。
-- Harness API 仍处于 prerelease 阶段。公开 registry 当前提供 `0.1.0-rc.6`，其中没有可用的精确 `0.1.0-rc.5` package 版本；peer range 仍从 rc.5 开始，以表示预期的 API boundary，但目前 fresh registry validation 只能针对 rc.6。
+- Harness API 仍处于 prerelease 阶段。本 package 已针对公开的完整 `0.1.1-rc.2` registry matrix 和上游 tag `dsh-v0.1.1-rc.2` 完成 fresh validation；peer range 仍从 rc.5 开始，以表示预期的 API boundary，`<0.2.0` 上界会让后续 API 漂移显现。
 - 匹配只支持每条规则一个 condition、JSON Pointer scalar equality 或字符串 containment，不实现通用 expression language。
 - `ask` 依赖 Harness approval service 和 answerer。插件不提供 UI，也不会自动批准请求。
 - policy feedback 会有意排除参数；操作人员需要在 Harness session 或 telemetry stream 中查看原始工具调用。
