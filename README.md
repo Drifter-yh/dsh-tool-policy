@@ -120,7 +120,7 @@ Add the community plugin directly to a Cordis composition. This example is expli
 
 ```yaml
 - id: tool-policy
-  name: 'dsh-tool-policy'
+  name: '@drifter-yh/dsh-tool-policy'
   config:
     defaultDecision: deny
     rules:
@@ -235,7 +235,7 @@ Expected output contains:
 
 The plugin targets the Harness API range `>=0.1.0-rc.5 <0.2.0` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.1-rc.2` registry packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The peer dependency upper bounds make later API drift visible at installation time.
 
-The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by its Cordis entry name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
+The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by its module/package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
 DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp__*` rule covers the complete MCP namespace.
 
 ## Current limitations

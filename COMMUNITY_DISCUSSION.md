@@ -13,7 +13,7 @@ DeepSeek Harness already provides the execution primitives that a production age
 After publication, install it with `pnpm add @drifter-yh/dsh-tool-policy` and add it to a Cordis composition:
 
 ```yaml
-- name: 'dsh-tool-policy'
+- name: '@drifter-yh/dsh-tool-policy'
   config:
     defaultDecision: deny
     rules:

@@ -32,7 +32,7 @@ describe('DeepSeek Harness bundle contract', () => {
         insert: [
           {
             id: 'tool-policy',
-            name: 'dsh-tool-policy',
+            name: '@drifter-yh/dsh-tool-policy',
             config: { defaultDecision: 'deny', rules: [] },
           },
         ],

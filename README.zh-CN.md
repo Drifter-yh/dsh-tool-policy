@@ -120,7 +120,7 @@ Harness profile patch 根据 id 定位 row，并替换它的整个 `config`；�
 
 ```yaml
 - id: tool-policy
-  name: 'dsh-tool-policy'
+  name: '@drifter-yh/dsh-tool-policy'
   config:
     defaultDecision: deny
     rules:
@@ -235,7 +235,7 @@ pnpm integration
 
 插件目标 Harness API 范围为 `>=0.1.0-rc.5 <0.2.0`，Cordis 范围为 `>=4.0.1 <5`。当前使用公开的 `0.1.1-rc.2` registry packages 和上游 tag `dsh-v0.1.1-rc.2`（commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`）验证。与 Harness 相关的代码只使用文档化的 `Context`、`tools` service 和 `tools/pre-execute` event。peer dependency 的上界会让后续 API 漂移在安装时显现。
 
-package 的 `dsh.bundle.patch` metadata 遵循 Harness profile-bundle specification。`cordis.patch.yml` 按 Cordis entry name 插入插件，profile composition 会在 profile 自己的 patch 之前应用这一层。bundle 默认 `deny` 且规则列表为空；运行工具前，请在 profile layer 配置插入的 `tool-policy` row。
+package 的 `dsh.bundle.patch` metadata 遵循 Harness profile-bundle specification。`cordis.patch.yml` 按 module/package name 插入插件，profile composition 会在 profile 自己的 patch 之前应用这一层。bundle 默认 `deny` 且规则列表为空；运行工具前，请在 profile layer 配置插入的 `tool-policy` row。
 
 DeepSeek Harness 将 MCP tools 暴露为 `mcp__<serverName>__<rawName>`，因此 `mcp__*` 规则可以覆盖完整的 MCP namespace。
 
