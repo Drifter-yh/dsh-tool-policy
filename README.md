@@ -57,18 +57,16 @@ A rule that matches one shell argument pattern, such as `rm -rf /foo`, only gove
 ## Installation
 
 > [!IMPORTANT]
-> The npm package named `dsh-tool-policy` is currently published by a different third party and is not this project.
+> The official npm package for this project is `@drifter-yh/dsh-tool-policy`.
 >
-> To install this repository, use the GitHub source explicitly:
+> The unscoped npm package `dsh-tool-policy` is maintained by a different third-party project and is not published from this repository.
 >
-> `github:Drifter-yh/dsh-tool-policy`
->
-> Do not rely on the bare npm package name unless this repository later publishes and documents an official npm distribution.
+> Use the scoped package name when installing from npm.
 
 The public Harness package line is currently `0.1.1-rc.2`:
 
 ```sh
-pnpm add github:Drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
+pnpm add @drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
 ```
 
 The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. The upstream source repository currently reports `0.1.1-rc.2` in `master`; this package is tested against the public `0.1.1-rc.2` registry artifacts.
@@ -85,7 +83,7 @@ Git installs fetch source, so this package's `prepare` script runs only the stan
 
 ```yaml
 allowBuilds:
-  'dsh-tool-policy@git+https://github.com/Drifter-yh/dsh-tool-policy.git#e6f43c255345a6f6bbab66ee8c053a2e5457e3c7': true
+  '@drifter-yh/dsh-tool-policy@git+https://github.com/Drifter-yh/dsh-tool-policy.git#e6f43c255345a6f6bbab66ee8c053a2e5457e3c7': true
 ```
 
 Review and pin the Git commit before allowing install-time code execution. `prepare` does not run tests or depend on a DeepSeek Harness checkout.
@@ -97,7 +95,7 @@ For local development, use the ordinary package-manager workflow from a clean cl
 The package also follows Harness's official profile-bundle contract: its `package.json` declares `dsh.bundle.patch`, and the published package contains `cordis.patch.yml`. Install it into a profile with:
 
 ```sh
-dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy
+dsh plugin --profile my-profile add @drifter-yh/dsh-tool-policy
 ```
 
 That activates one `tool-policy` row with `defaultDecision: deny` and no rules. Before starting an agent, configure the row in `$DSH_HOME/profiles/my-profile/cordis.patch.yml`:
@@ -237,7 +235,7 @@ Expected output contains:
 
 The plugin targets the Harness API range `>=0.1.0-rc.5 <0.2.0` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.1-rc.2` registry packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The peer dependency upper bounds make later API drift visible at installation time.
 
-The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
+The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by its Cordis entry name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
 DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp__*` rule covers the complete MCP namespace.
 
 ## Current limitations

@@ -10,7 +10,7 @@ DeepSeek Harness already provides the execution primitives that a production age
 
 `dsh-tool-policy` is an independent Cordis plugin that attaches to the public `tools/pre-execute` waterfall. It compiles ordered tool-name and JSON-Pointer argument rules, then returns `deny`, routes `ask` into the existing Harness approval seam, or delegates `allow` with `next()`. It defaults to deny, never rewrites arguments, never runs tool bodies, and does not create a second audit, timeout, retry, or approval implementation.
 
-After publication, install it with `pnpm add dsh-tool-policy` and add it to a Cordis composition:
+After publication, install it with `pnpm add @drifter-yh/dsh-tool-policy` and add it to a Cordis composition:
 
 ```yaml
 - name: 'dsh-tool-policy'
