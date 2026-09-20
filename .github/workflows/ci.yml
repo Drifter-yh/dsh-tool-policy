@@ -13,11 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
       - uses: actions/setup-node@v4
         with:
           node-version: 22.19.0
-      - run: corepack enable
-      - run: corepack pnpm install --frozen-lockfile --ignore-scripts --config.minimumReleaseAge=0 --config.strictDepBuilds=false
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --ignore-scripts --config.minimumReleaseAge=0 --config.strictDepBuilds=false
       - run: node_modules/.bin/tsc --noEmit
       - run: node_modules/.bin/eslint .
       - run: node_modules/.bin/prettier --check .
