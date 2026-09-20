@@ -56,10 +56,19 @@ A rule that matches one shell argument pattern, such as `rm -rf /foo`, only gove
 
 ## Installation
 
+> [!IMPORTANT]
+> The npm package named `dsh-tool-policy` is currently published by a different third party and is not this project.
+>
+> To install this repository, use the GitHub source explicitly:
+>
+> `github:Drifter-yh/dsh-tool-policy`
+>
+> Do not rely on the bare npm package name unless this repository later publishes and documents an official npm distribution.
+
 The public Harness package line is currently `0.1.1-rc.2`:
 
 ```sh
-pnpm add dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
+pnpm add github:Drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
 ```
 
 The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. The upstream source repository currently reports `0.1.1-rc.2` in `master`; this package is tested against the public `0.1.1-rc.2` registry artifacts.
@@ -88,7 +97,7 @@ For local development, use the ordinary package-manager workflow from a clean cl
 The package also follows Harness's official profile-bundle contract: its `package.json` declares `dsh.bundle.patch`, and the published package contains `cordis.patch.yml`. Install it into a profile with:
 
 ```sh
-dsh plugin --profile my-profile add dsh-tool-policy
+dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy
 ```
 
 That activates one `tool-policy` row with `defaultDecision: deny` and no rules. Before starting an agent, configure the row in `$DSH_HOME/profiles/my-profile/cordis.patch.yml`:

@@ -56,10 +56,19 @@ pipeline approval tool body
 
 ## 安装
 
+> [!IMPORTANT]
+> npm registry 中当前存在一个第三方发布的同名 `dsh-tool-policy` 包，它不是本仓库发布的版本。
+>
+> 安装本项目时请显式使用：
+>
+> `github:Drifter-yh/dsh-tool-policy`
+>
+> 在本仓库未来明确发布官方 npm 包之前，不要通过裸包名 `dsh-tool-policy` 判断安装来源。
+
 当前公开的 Harness package line 是 `0.1.1-rc.2`：
 
 ```sh
-pnpm add dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
+pnpm add github:Drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
 ```
 
 Harness packages 是 peer dependencies，由宿主控制 runtime 版本。`@deepseek-ai/schemastery` 是插件的普通 runtime dependency。上游 source repository 当前在 `master` 报告的版本是 `0.1.1-rc.2`；本 package 针对公开 registry artifacts 中的 `0.1.1-rc.2` 测试。
@@ -88,7 +97,7 @@ allowBuilds:
 这个 package 也遵循 Harness 官方 profile-bundle contract：`package.json` 声明了 `dsh.bundle.patch`，发布包包含 `cordis.patch.yml`。将它安装到 profile：
 
 ```sh
-dsh plugin --profile my-profile add dsh-tool-policy
+dsh plugin --profile my-profile add github:Drifter-yh/dsh-tool-policy
 ```
 
 安装会激活一个 `tool-policy` row，初始配置为 `defaultDecision: deny` 且没有规则。启动 agent 前，在 `$DSH_HOME/profiles/my-profile/cordis.patch.yml` 中配置该 row：
