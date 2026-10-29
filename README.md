@@ -63,13 +63,15 @@ A rule that matches one shell argument pattern, such as `rm -rf /foo`, only gove
 >
 > Use the scoped package name when installing from npm.
 
-The public Harness package line is currently `0.1.1-rc.2`:
+The recorded validation baseline uses the public Harness `0.1.1-rc.2` package line:
 
 ```sh
-pnpm add @drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
+pnpm add --save-exact @drifter-yh/dsh-tool-policy @deepseek-ai/cordis@4.0.1 @deepseek-ai/dsh-tools@0.1.1-rc.2
 ```
 
-The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. The upstream source repository currently reports `0.1.1-rc.2` in `master`; this package is tested against the public `0.1.1-rc.2` registry artifacts.
+The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. This package is tested against the public `0.1.1-rc.2` registry artifacts.
+
+The example pins the two direct Harness peers, but does not reproduce the full CI lockfile. See [CONTRIBUTING.md](CONTRIBUTING.md) for the locked development baseline.
 
 ### GitHub installation
 
@@ -233,7 +235,7 @@ Expected output contains:
 
 ## Compatibility with DeepSeek Harness
 
-The plugin targets the Harness API range `>=0.1.0-rc.5 <0.2.0` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.1-rc.2` registry packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The peer dependency upper bounds make later API drift visible at installation time.
+The plugin declares the `dsh-tools` peer range `>=0.1.0-rc.5 <0.2.0 || 0.1.1-rc.2` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.1-rc.2` registry packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. Peer ranges cannot establish compatibility or detect API drift within those ranges.
 
 The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by its module/package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
 DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp__*` rule covers the complete MCP namespace.
@@ -241,7 +243,7 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 ## Current limitations
 
 - Rules are deployment-global; use multiple Cordis contexts if different agents require different policy trees.
-- The Harness API is still prerelease. This package is freshly validated against the complete public `0.1.1-rc.2` registry matrix and upstream tag `dsh-v0.1.1-rc.2`; the peer range still begins at rc.5 to reflect the intended API boundary, and the `<0.2.0` upper bound keeps later API drift visible.
+- The recorded Harness validation baseline is the prerelease `0.1.1-rc.2` registry dependency set and upstream tag `dsh-v0.1.1-rc.2`. CI tests one locked set, not every version in the peer range; the explicit `0.1.1-rc.2` alternative does not include other `0.1.1` prereleases.
 - Matching supports one condition per rule, JSON Pointer scalar equality, or string containment. It does not implement a general expression language.
 - `ask` depends on the Harness approval service and an answerer. The plugin does not provide a UI or automatically approve a request.
 - Policy feedback is intentionally argument-free; an operator must inspect the original tool call in the Harness session or telemetry stream.

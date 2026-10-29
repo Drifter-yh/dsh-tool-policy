@@ -63,13 +63,15 @@ pipeline approval tool body
 >
 > 从 npm 安装时请使用 scoped 包名。
 
-当前公开的 Harness package line 是 `0.1.1-rc.2`：
+已记录的验证基线使用公开的 Harness `0.1.1-rc.2` package line：
 
 ```sh
-pnpm add @drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
+pnpm add --save-exact @drifter-yh/dsh-tool-policy @deepseek-ai/cordis@4.0.1 @deepseek-ai/dsh-tools@0.1.1-rc.2
 ```
 
-Harness packages 是 peer dependencies，由宿主控制 runtime 版本。`@deepseek-ai/schemastery` 是插件的普通 runtime dependency。上游 source repository 当前在 `master` 报告的版本是 `0.1.1-rc.2`；本 package 针对公开 registry artifacts 中的 `0.1.1-rc.2` 测试。
+Harness packages 是 peer dependencies，由宿主控制 runtime 版本。`@deepseek-ai/schemastery` 是插件的普通 runtime dependency。本 package 针对公开 registry artifacts 中的 `0.1.1-rc.2` 测试。
+
+此示例固定两个直接的 Harness peer 版本，但不能复现完整的 CI lockfile。锁定的开发验证基线见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ### 从 GitHub 安装
 
@@ -233,7 +235,7 @@ pnpm integration
 
 ## 与 DeepSeek Harness 的兼容性
 
-插件目标 Harness API 范围为 `>=0.1.0-rc.5 <0.2.0`，Cordis 范围为 `>=4.0.1 <5`。当前使用公开的 `0.1.1-rc.2` registry packages 和上游 tag `dsh-v0.1.1-rc.2`（commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`）验证。与 Harness 相关的代码只使用文档化的 `Context`、`tools` service 和 `tools/pre-execute` event。peer dependency 的上界会让后续 API 漂移在安装时显现。
+插件声明的 `dsh-tools` peer 范围为 `>=0.1.0-rc.5 <0.2.0 || 0.1.1-rc.2`，Cordis 范围为 `>=4.0.1 <5`。当前使用公开的 `0.1.1-rc.2` registry packages 和上游 tag `dsh-v0.1.1-rc.2`（commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`）验证。与 Harness 相关的代码只使用文档化的 `Context`、`tools` service 和 `tools/pre-execute` event。peer 范围不能证明兼容性，也不能检测范围内的 API 漂移。
 
 package 的 `dsh.bundle.patch` metadata 遵循 Harness profile-bundle specification。`cordis.patch.yml` 按 module/package name 插入插件，profile composition 会在 profile 自己的 patch 之前应用这一层。bundle 默认 `deny` 且规则列表为空；运行工具前，请在 profile layer 配置插入的 `tool-policy` row。
 
@@ -242,7 +244,7 @@ DeepSeek Harness 将 MCP tools 暴露为 `mcp__<serverName>__<rawName>`，因此
 ## 当前限制
 
 - 规则是 deployment-global 的；如果不同 agent 需要不同的 policy tree，请使用多个 Cordis context。
-- Harness API 仍处于 prerelease 阶段。本 package 已针对公开的完整 `0.1.1-rc.2` registry matrix 和上游 tag `dsh-v0.1.1-rc.2` 完成 fresh validation；peer range 仍从 rc.5 开始，以表示预期的 API boundary，`<0.2.0` 上界会让后续 API 漂移显现。
+- 已记录的 Harness 验证基线是 prerelease `0.1.1-rc.2` registry 依赖集和上游 tag `dsh-v0.1.1-rc.2`。CI 只测试一组锁定依赖，并未测试 peer range 中的每个版本；显式声明的 `0.1.1-rc.2` 不包括其他 `0.1.1` prerelease。
 - 匹配只支持每条规则一个 condition、JSON Pointer scalar equality 或字符串 containment，不实现通用 expression language。
 - `ask` 依赖 Harness approval service 和 answerer。插件不提供 UI，也不会自动批准请求。
 - policy feedback 会有意排除参数；操作人员需要在 Harness session 或 telemetry stream 中查看原始工具调用。
