@@ -195,6 +195,10 @@ rules:
 
 插件会通过 Cordis logger 输出一条 `info` 记录，包含工具名、本插件产生的 decision、匹配规则的编号（从 1 开始；使用 `defaultDecision` 时为 `null`），以及 `ask` 或 `deny` 使用的配置 reason。记录不会包含已解析的工具参数。trace 默认关闭、采用 best-effort 方式输出，也不替代 Harness 的 session audit event；后续的 policy listener 或单调 tool guard 仍可能让一个 `allow` 调用最终无法执行。
 
+## 使用示例
+
+参见[可复制的 MCP、文件系统、shell 和无人值守任务示例](recipes.zh-CN.md)，其中列出了 sandbox 和审批前提。
+
 ## 架构
 
 ```mermaid
@@ -257,7 +261,7 @@ DeepSeek Harness 将 MCP tools 暴露为 `mcp__<serverName>__<rawName>`，因此
 ### 下一步
 
 - [ ] 为常见 MCP 和无人值守部署增加可复用的 routing-oriented policy preset
-- [ ] 增加可直接复制的 MCP、filesystem 和 unattended-agent 配置 recipes
+- [x] 增加可直接复制的 MCP、filesystem 和 unattended-agent 配置 recipes
 
 ### 未来
 

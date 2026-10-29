@@ -35,6 +35,8 @@
     "dist",
     "README.md",
     "README.zh-CN.md",
+    "recipes.md",
+    "recipes.zh-CN.md",
     "LICENSE",
     "cordis.patch.yml"
   ],

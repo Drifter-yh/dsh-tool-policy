@@ -195,6 +195,10 @@ rules:
 
 The plugin writes an `info` record through the Cordis logger with the tool name, this plugin's decision, the one-based matched rule number (or `null` when `defaultDecision` was used), and the configured reason for `ask` or `deny`. It never includes parsed tool arguments. Tracing is disabled by default, is best-effort, and does not replace Harness session audit events; a later policy listener or monotonic tool guard may still change whether an allowed call executes.
 
+## Recipes
+
+See [copyable MCP, filesystem, shell, and unattended-task recipes](recipes.md), including their sandbox and approval assumptions.
+
 ## Architecture
 
 ```mermaid
@@ -256,7 +260,7 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 ### Next
 
 - [ ] Add reusable routing-oriented policy presets for common MCP and unattended deployments
-- [ ] Add copyable MCP, filesystem, and unattended-agent recipes
+- [x] Add copyable MCP, filesystem, and unattended-agent recipes
 
 ### Future
 
