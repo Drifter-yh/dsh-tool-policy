@@ -51,6 +51,77 @@ function createApprovalAgent(): Agent {
 }
 
 describe('dsh-tool-policy plugin', () => {
+  it('validates preset fields in the loader schema', () => {
+    expect(
+      ToolPolicy.Config({ preset: 'mcp-approval', appendRules: [{ tool: 'local', decision: 'allow' }] }),
+    ).toMatchObject({ preset: 'mcp-approval', appendRules: [{ tool: 'local', decision: 'allow' }] })
+    expect(() => ToolPolicy.Config({ preset: 'unknown' } as unknown as ToolPolicy.Config)).toThrow()
+    expect(() => ToolPolicy.Config({ appendRules: 'invalid' } as unknown as ToolPolicy.Config)).toThrow()
+    for (const input of [{ preset: null }, { appendRules: null }]) {
+      const normalized = ToolPolicy.Config(input as unknown as ToolPolicy.Config)
+      expect(() => ToolPolicy.compilePolicy(normalized)).toThrow()
+    }
+  })
+  it('preserves conditional overrides and appended rules after schema normalization and JSON round-trip', () => {
+    const normalized = ToolPolicy.Config({
+      preset: 'read-only',
+      rules: [{ tool: 'read_*', decision: 'deny', argument: { path: '/secret', equals: false } }],
+      appendRules: [{ tool: 'local', decision: 'ask', argument: { path: '/command', contains: 'write' } }],
+    })
+    const expanded = ToolPolicy.expandPolicy(normalized)
+    const restored = JSON.parse(JSON.stringify(expanded)) as ToolPolicy.ToolPolicyConfig
+    const policy = ToolPolicy.compilePolicy(restored)
+    expect(ToolPolicy.evaluatePolicy(policy, 'read_file', { secret: false })).toMatchObject({
+      decision: 'deny',
+      ruleIndex: 0,
+    })
+    expect(ToolPolicy.evaluatePolicy(policy, 'read_file', { secret: true })).toEqual({
+      decision: 'allow',
+      ruleIndex: 1,
+    })
+    expect(ToolPolicy.evaluatePolicy(policy, 'local', { command: 'write' })).toMatchObject({
+      decision: 'ask',
+      ruleIndex: 2,
+    })
+    expect(ToolPolicy.evaluatePolicy(policy, 'local', { command: 'read' })).toMatchObject({ decision: 'deny' })
+  })
+  it('routes overrides, MCP approval and appended rules through the plugin', async () => {
+    const calls: string[] = []
+    const { ctx } = await setup({
+      preset: 'mcp-approval',
+      rules: [{ tool: 'mcp__trusted__read', decision: 'allow' }],
+      appendRules: [{ tool: 'local', decision: 'allow' }],
+    })
+    for (const name of ['mcp__trusted__read', 'mcp__other__write', 'local', 'unlisted']) {
+      registerProbe(ctx, calls, name)
+      const result = await ctx.tools.execute({
+        callId: CallId(`route-${name}`),
+        name,
+        arguments: { command: name },
+        signal,
+      })
+      expect(result.isError).toBe(name === 'mcp__other__write' || name === 'unlisted')
+      if (name === 'mcp__other__write') expect(result.error?.message).toContain('requires approval')
+      if (name === 'unlisted') expect(result.error?.message).toContain('denied')
+    }
+    expect(calls).toEqual(['mcp__trusted__read', 'local'])
+  })
+  it('applies a preset through the Cordis config schema', async () => {
+    const calls: string[] = []
+    const { ctx } = await setup({ preset: 'read-only', appendRules: [{ tool: 'probe', decision: 'allow' }] })
+    registerProbe(ctx, calls, 'read_record')
+    registerProbe(ctx, calls)
+    for (const name of ['read_record', 'probe']) {
+      const result = await ctx.tools.execute({
+        callId: CallId(`preset-${name}`),
+        name,
+        arguments: { command: name },
+        signal,
+      })
+      expect(result.isError).toBe(false)
+    }
+    expect(calls).toEqual(['read_record', 'probe'])
+  })
   it('keeps decision tracing disabled by default', async () => {
     const calls: string[] = []
     const { ctx } = await setup({ rules: [{ tool: 'probe', decision: 'deny', reason: 'probe is disabled' }] })
