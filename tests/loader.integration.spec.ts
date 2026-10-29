@@ -21,8 +21,8 @@ describe('real Cordis Loader composition', () => {
     const errorOutput = Buffer.concat(stderr).toString('utf8')
 
     expect(result, errorOutput).toBe(0)
-    expect(output).toContain('"blocked":{"isError":true,"message":"deleting records is disabled in the demo"}')
-    expect(output).toContain('"allowed":{"isError":false,"value":"record:42"}')
-    expect(output).toContain('"executed":1')
+    expect(output, errorOutput).toContain('"blocked":{"isError":true,"message":"deleting records is disabled in the demo"}')
+    expect(output, errorOutput).toContain('"allowed":{"isError":false,"value":"record:42"}')
+    expect(output, errorOutput).toContain('"executed":1')
   }, 30_000)
 })
