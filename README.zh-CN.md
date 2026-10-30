@@ -63,13 +63,15 @@ pipeline approval tool body
 >
 > 从 npm 安装时请使用 scoped 包名。
 
-当前公开的 Harness package line 是 `0.1.1-rc.2`：
+已记录的验证基线使用公开的 Harness `0.1.1-rc.2` package line：
 
 ```sh
-pnpm add @drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
+pnpm add --save-exact @drifter-yh/dsh-tool-policy @deepseek-ai/cordis@4.0.1 @deepseek-ai/dsh-tools@0.1.1-rc.2
 ```
 
-Harness packages 是 peer dependencies，由宿主控制 runtime 版本。`@deepseek-ai/schemastery` 是插件的普通 runtime dependency。上游 source repository 当前在 `master` 报告的版本是 `0.1.1-rc.2`；本 package 针对公开 registry artifacts 中的 `0.1.1-rc.2` 测试。
+Harness packages 是 peer dependencies，由宿主控制 runtime 版本。`@deepseek-ai/schemastery` 是插件的普通 runtime dependency。本 package 针对公开 registry artifacts 中的 `0.1.1-rc.2` 测试。
+
+此示例固定两个直接的 Harness peer 版本，但不能复现完整的 CI lockfile。锁定的开发验证基线见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ### 从 GitHub 安装
 
@@ -139,6 +141,29 @@ Harness profile patch 根据 id 定位 row，并替换它的整个 `config`；�
 
 插件挂载后，在工具调用层默认采用 fail-closed 行为：默认 decision 是 `deny`，因此只有显式允许的调用会运行。只有在明确要部署 targeted 或 advisory policy 时，才设置 `defaultDecision: allow`。
 
+## 路由预设
+
+两个可选起点会在编译前展开为普通规则：
+
+- `read-only`：`{ tool: 'read_*', decision: 'allow' }`。
+- `mcp-approval`：`{ tool: 'mcp__*', decision: 'ask' }`。
+
+除非显式设置 `defaultDecision`，两者都保留默认拒绝。这些规则只匹配名称：名为 `read_*` 的工具未必真正只读，`mcp__*` 也不覆盖非 MCP 的外部工具。请检查实际工具并按部署需求调整规则。
+
+```yaml
+preset: mcp-approval
+rules: # 首先匹配：覆盖这个工具的预设行为
+  - tool: mcp__trusted__read
+    decision: allow
+appendRules: # 在预设之后匹配
+  - tool: read_record
+    decision: allow
+```
+
+完整顺序是 `rules`、预设规则、`appendRules`，第一条匹配规则生效。追加规则不能覆盖之前已匹配的规则。不使用预设时，原有 `rules` 行为不变。trace 的规则编号对应展开后的顺序。TypeScript 中可通过两个 package 入口导出的 `expandPolicy(config)` 验证并取得可 JSON 序列化的普通 `{ defaultDecision, rules }`，用于检查或保存；`compilePolicy` 在求值前展开相同配置。
+
+预设只负责逐次调用路由，不能替代 Harness 沙箱和审批配置。请为 `ask` 配置 Harness 审批服务及处理器，并使用限制性 Harness 沙箱约束能力。
+
 ## 配置
 
 ```yaml
@@ -195,6 +220,10 @@ rules:
 
 插件会通过 Cordis logger 输出一条 `info` 记录，包含工具名、本插件产生的 decision、匹配规则的编号（从 1 开始；使用 `defaultDecision` 时为 `null`），以及 `ask` 或 `deny` 使用的配置 reason。记录不会包含已解析的工具参数。trace 默认关闭、采用 best-effort 方式输出，也不替代 Harness 的 session audit event；后续的 policy listener 或单调 tool guard 仍可能让一个 `allow` 调用最终无法执行。
 
+## 使用示例
+
+参见[可复制的 MCP、文件系统、shell 和无人值守任务示例](recipes.zh-CN.md)，其中列出了 sandbox 和审批前提。
+
 ## 架构
 
 ```mermaid
@@ -233,7 +262,7 @@ pnpm integration
 
 ## 与 DeepSeek Harness 的兼容性
 
-插件目标 Harness API 范围为 `>=0.1.0-rc.5 <0.2.0`，Cordis 范围为 `>=4.0.1 <5`。当前使用公开的 `0.1.1-rc.2` registry packages 和上游 tag `dsh-v0.1.1-rc.2`（commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`）验证。与 Harness 相关的代码只使用文档化的 `Context`、`tools` service 和 `tools/pre-execute` event。peer dependency 的上界会让后续 API 漂移在安装时显现。
+插件声明的 `dsh-tools` peer 范围为 `>=0.1.0-rc.5 <0.2.0 || 0.1.1-rc.2`，Cordis 范围为 `>=4.0.1 <5`。当前使用公开的 `0.1.1-rc.2` registry packages 和上游 tag `dsh-v0.1.1-rc.2`（commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`）验证。与 Harness 相关的代码只使用文档化的 `Context`、`tools` service 和 `tools/pre-execute` event。peer 范围不能证明兼容性，也不能检测范围内的 API 漂移。
 
 package 的 `dsh.bundle.patch` metadata 遵循 Harness profile-bundle specification。`cordis.patch.yml` 按 module/package name 插入插件，profile composition 会在 profile 自己的 patch 之前应用这一层。bundle 默认 `deny` 且规则列表为空；运行工具前，请在 profile layer 配置插入的 `tool-policy` row。
 
@@ -242,7 +271,7 @@ DeepSeek Harness 将 MCP tools 暴露为 `mcp__<serverName>__<rawName>`，因此
 ## 当前限制
 
 - 规则是 deployment-global 的；如果不同 agent 需要不同的 policy tree，请使用多个 Cordis context。
-- Harness API 仍处于 prerelease 阶段。本 package 已针对公开的完整 `0.1.1-rc.2` registry matrix 和上游 tag `dsh-v0.1.1-rc.2` 完成 fresh validation；peer range 仍从 rc.5 开始，以表示预期的 API boundary，`<0.2.0` 上界会让后续 API 漂移显现。
+- 已记录的 Harness 验证基线是 prerelease `0.1.1-rc.2` registry 依赖集和上游 tag `dsh-v0.1.1-rc.2`。CI 只测试一组锁定依赖，并未测试 peer range 中的每个版本；显式声明的 `0.1.1-rc.2` 不包括其他 `0.1.1` prerelease。
 - 匹配只支持每条规则一个 condition、JSON Pointer scalar equality 或字符串 containment，不实现通用 expression language。
 - `ask` 依赖 Harness approval service 和 answerer。插件不提供 UI，也不会自动批准请求。
 - policy feedback 会有意排除参数；操作人员需要在 Harness session 或 telemetry stream 中查看原始工具调用。
@@ -256,8 +285,8 @@ DeepSeek Harness 将 MCP tools 暴露为 `mcp__<serverName>__<rawName>`，因此
 
 ### 下一步
 
-- [ ] 为常见 MCP 和无人值守部署增加可复用的 routing-oriented policy preset
-- [ ] 增加可直接复制的 MCP、filesystem 和 unattended-agent 配置 recipes
+- [x] 增加可复用的路由策略起点
+- [x] 增加可直接复制的 MCP、filesystem 和 unattended-agent 配置 recipes
 
 ### 未来
 

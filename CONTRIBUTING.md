@@ -4,18 +4,19 @@ Thanks for improving `dsh-tool-policy`. Keep changes small and focused on the pu
 
 ## Development
 
-The public Harness package line used for reproducible validation is `0.1.0-rc.6`; exact `0.1.0-rc.5` package versions are not currently available from the public registry, while the plugin compatibility range starts at `0.1.0-rc.5`. All development dependencies are registry packages; the repository must not depend on a sibling Harness checkout, local tarball, or private workspace path. The integration test uses the installed Cordis Loader and Include packages directly.
+The locked validation baseline uses the published Harness `0.1.1-rc.2` packages and Cordis `4.0.1` (with Loader `1.0.2` and Include `1.0.6`). CI runs one locked dependency set, not a version matrix. The declared `@deepseek-ai/dsh-tools` peer range is `>=0.1.0-rc.5 <0.2.0 || 0.1.1-rc.2` and the Cordis range is `>=4.0.1 <5`; these intended bounds do not establish that every version in them has been tested. The explicit `0.1.1-rc.2` alternative is required by npm semver prerelease matching and does not include other `0.1.1` prereleases. All development dependencies are registry packages; the repository must not depend on a sibling Harness checkout, local tarball, or private workspace path. The integration test uses the installed Cordis Loader and Include packages directly.
 
-Run the full local checks:
+For the locked baseline, use Node `22.19.0` and pnpm `11.24.0` as in CI, then run:
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile --ignore-scripts --config.minimumReleaseAge=0 --config.strictDepBuilds=false
 pnpm typecheck
 pnpm lint
 pnpm format:check
 pnpm test
 pnpm build
 pnpm integration
+npm pack --dry-run
 ```
 
 Changes to `src/index.ts` should stay limited to Cordis/Harness integration. Keep policy compilation and matching in `src/policy.ts` independent of Cordis so it can be tested and reused without a running agent.

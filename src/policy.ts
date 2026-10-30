@@ -40,6 +40,19 @@ export interface ToolPolicyConfig {
   readonly defaultDecision?: RuleDecision
   /** Ordered rules; the first matching rule wins. Defaults to an empty list. */
   readonly rules?: readonly PolicyRule[]
+  /** Optional routing starter, expanded after rules and before appendRules. */
+  readonly preset?: PolicyPreset
+  /** Rules evaluated after the preset's rules. */
+  readonly appendRules?: readonly PolicyRule[]
+}
+
+/** Names of the built-in, per-call routing starters. */
+export type PolicyPreset = 'read-only' | 'mcp-approval'
+
+/** Serializable, fully expanded policy input. */
+export interface ExpandedPolicy {
+  readonly defaultDecision: RuleDecision
+  readonly rules: readonly PolicyRule[]
 }
 
 export type CompiledCondition =
@@ -150,8 +163,55 @@ function compileCondition(condition: ArgumentCondition, ruleIndex: number): Comp
   return { kind: 'contains', path, value: condition.contains }
 }
 
+/** Expand a starter into ordinary rules, with user rules before and appended rules after it. */
+export function expandPolicy(config: ToolPolicyConfig = {}): ExpandedPolicy {
+  let presetRules: readonly PolicyRule[] = []
+  if (config.preset !== undefined) {
+    switch (config.preset) {
+      case 'read-only':
+        presetRules = [{ tool: 'read_*', decision: 'allow' }]
+        break
+      case 'mcp-approval':
+        presetRules = [{ tool: 'mcp__*', decision: 'ask' }]
+        break
+      default:
+        throw new TypeError('preset must be "read-only" or "mcp-approval"')
+    }
+  }
+  const rules = config.rules ?? []
+  if (!Array.isArray(rules)) throw new TypeError('rules must be an array')
+  const appendRules = config.appendRules === undefined ? [] : config.appendRules
+  if (!Array.isArray(appendRules)) throw new TypeError('appendRules must be an array')
+  const expanded: ExpandedPolicy = {
+    defaultDecision: config.defaultDecision ?? 'deny',
+    rules: [...rules, ...presetRules, ...appendRules],
+  }
+  compileExpandedPolicy(expanded)
+  return {
+    defaultDecision: expanded.defaultDecision,
+    rules: expanded.rules.map((rule) => ({
+      tool: rule.tool,
+      decision: rule.decision,
+      ...(rule.reason !== undefined ? { reason: rule.reason } : {}),
+      ...(rule.argument !== undefined ? { argument: copyCondition(rule.argument) } : {}),
+    })),
+  }
+}
+
+function copyCondition(argument: ArgumentCondition): ArgumentCondition {
+  return {
+    path: argument.path,
+    ...(Object.hasOwn(argument, 'equals') ? { equals: argument.equals } : {}),
+    ...(Object.hasOwn(argument, 'contains') ? { contains: argument.contains } : {}),
+  }
+}
+
 /** Compile and validate an ordered policy. Invalid configuration fails at plugin load. */
 export function compilePolicy(config: ToolPolicyConfig = {}): CompiledPolicy {
+  return compileExpandedPolicy(expandPolicy(config))
+}
+
+function compileExpandedPolicy(config: ExpandedPolicy): CompiledPolicy {
   const defaultDecision = config.defaultDecision ?? 'deny'
   if (!isRuleDecision(defaultDecision)) {
     throw new TypeError('defaultDecision must be one of "allow", "ask", or "deny"')

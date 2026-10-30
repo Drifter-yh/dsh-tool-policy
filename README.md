@@ -63,13 +63,15 @@ A rule that matches one shell argument pattern, such as `rm -rf /foo`, only gove
 >
 > Use the scoped package name when installing from npm.
 
-The public Harness package line is currently `0.1.1-rc.2`:
+The recorded validation baseline uses the public Harness `0.1.1-rc.2` package line:
 
 ```sh
-pnpm add @drifter-yh/dsh-tool-policy @deepseek-ai/cordis @deepseek-ai/dsh-tools
+pnpm add --save-exact @drifter-yh/dsh-tool-policy @deepseek-ai/cordis@4.0.1 @deepseek-ai/dsh-tools@0.1.1-rc.2
 ```
 
-The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. The upstream source repository currently reports `0.1.1-rc.2` in `master`; this package is tested against the public `0.1.1-rc.2` registry artifacts.
+The Harness packages are peer dependencies so the host controls the runtime version. `@deepseek-ai/schemastery` is installed as the plugin's normal runtime dependency. This package is tested against the public `0.1.1-rc.2` registry artifacts.
+
+The example pins the two direct Harness peers, but does not reproduce the full CI lockfile. See [CONTRIBUTING.md](CONTRIBUTING.md) for the locked development baseline.
 
 ### GitHub installation
 
@@ -139,6 +141,29 @@ Add the community plugin directly to a Cordis composition. This example is expli
 
 The plugin is fail-closed at the tool-call layer when mounted: the default decision is `deny`, so only explicitly allowed calls run. Set `defaultDecision: allow` only when intentionally deploying a targeted or advisory policy.
 
+## Routing presets
+
+Two optional starters expand into ordinary rules before compilation:
+
+- `read-only`: `{ tool: 'read_*', decision: 'allow' }`.
+- `mcp-approval`: `{ tool: 'mcp__*', decision: 'ask' }`.
+
+Both leave the default decision at `deny` unless you explicitly set `defaultDecision`. They match names only: a tool called `read_*` is not necessarily read-only, and non-MCP external tools are not covered by `mcp__*`. Review the actual tools and adjust the rules for your deployment.
+
+```yaml
+preset: mcp-approval
+rules: # evaluated first: overrides the preset for this tool
+  - tool: mcp__trusted__read
+    decision: allow
+appendRules: # evaluated after the preset
+  - tool: read_record
+    decision: allow
+```
+
+The complete order is `rules`, the preset's rules, then `appendRules`, with the first match winning. An appended rule cannot override an earlier match. Without a preset, existing `rules` behavior is unchanged. Trace rule numbers refer to this expanded order. In TypeScript, `expandPolicy(config)` (exported from both package entry points) validates and returns the plain, JSON-serializable `{ defaultDecision, rules }` for inspection or storage; `compilePolicy` expands the same configuration before evaluation.
+
+These presets route individual calls; they do not replace Harness sandboxing or approval configuration. Configure the Harness approval service and handler for `ask`, and use a restrictive Harness sandbox to enforce capabilities.
+
 ## Configuration
 
 ```yaml
@@ -195,6 +220,10 @@ rules:
 
 The plugin writes an `info` record through the Cordis logger with the tool name, this plugin's decision, the one-based matched rule number (or `null` when `defaultDecision` was used), and the configured reason for `ask` or `deny`. It never includes parsed tool arguments. Tracing is disabled by default, is best-effort, and does not replace Harness session audit events; a later policy listener or monotonic tool guard may still change whether an allowed call executes.
 
+## Recipes
+
+See [copyable MCP, filesystem, shell, and unattended-task recipes](recipes.md), including their sandbox and approval assumptions.
+
 ## Architecture
 
 ```mermaid
@@ -233,7 +262,7 @@ Expected output contains:
 
 ## Compatibility with DeepSeek Harness
 
-The plugin targets the Harness API range `>=0.1.0-rc.5 <0.2.0` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.1-rc.2` registry packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. The peer dependency upper bounds make later API drift visible at installation time.
+The plugin declares the `dsh-tools` peer range `>=0.1.0-rc.5 <0.2.0 || 0.1.1-rc.2` and Cordis `>=4.0.1 <5`. It is currently validated against the published `0.1.1-rc.2` registry packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`. Its Harness-specific code uses the documented `Context`, `tools` service, and `tools/pre-execute` event only. Peer ranges cannot establish compatibility or detect API drift within those ranges.
 
 The package's `dsh.bundle.patch` metadata follows the Harness profile-bundle specification. `cordis.patch.yml` inserts the plugin by its module/package name, and profile composition applies that layer before the profile's own patch. The bundle defaults to deny with an empty rule list; configure the inserted `tool-policy` row in the profile layer before running tools.
 DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp__*` rule covers the complete MCP namespace.
@@ -241,7 +270,7 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 ## Current limitations
 
 - Rules are deployment-global; use multiple Cordis contexts if different agents require different policy trees.
-- The Harness API is still prerelease. This package is freshly validated against the complete public `0.1.1-rc.2` registry matrix and upstream tag `dsh-v0.1.1-rc.2`; the peer range still begins at rc.5 to reflect the intended API boundary, and the `<0.2.0` upper bound keeps later API drift visible.
+- The recorded Harness validation baseline is the prerelease `0.1.1-rc.2` registry dependency set and upstream tag `dsh-v0.1.1-rc.2`. CI tests one locked set, not every version in the peer range; the explicit `0.1.1-rc.2` alternative does not include other `0.1.1` prereleases.
 - Matching supports one condition per rule, JSON Pointer scalar equality, or string containment. It does not implement a general expression language.
 - `ask` depends on the Harness approval service and an answerer. The plugin does not provide a UI or automatically approve a request.
 - Policy feedback is intentionally argument-free; an operator must inspect the original tool call in the Harness session or telemetry stream.
@@ -255,8 +284,8 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 
 ### Next
 
-- [ ] Add reusable routing-oriented policy presets for common MCP and unattended deployments
-- [ ] Add copyable MCP, filesystem, and unattended-agent recipes
+- [x] Add reusable routing-oriented policy starters
+- [x] Add copyable MCP, filesystem, and unattended-agent recipes
 
 ### Future
 

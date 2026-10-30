@@ -24,6 +24,7 @@ import {
 
 export {
   compilePolicy,
+  expandPolicy,
   evaluatePolicy,
   type ArgumentCondition,
   type CompiledPolicy,
@@ -33,6 +34,8 @@ export {
   type JsonScalar,
   type PolicyEvaluation,
   type PolicyRule,
+  type PolicyPreset,
+  type ExpandedPolicy,
   type RuleDecision,
   type ToolPolicyConfig,
 } from './policy.ts'
@@ -63,27 +66,26 @@ export interface Config extends ToolPolicyConfig {
 
 const scalarSchema: z<JsonScalar> = z.union([z.string(), z.number(), z.boolean(), z.const(null)])
 type ArgumentSchemaOutput = { path: string; equals: JsonScalar; contains: string }
+const ruleSchema = z.object({
+  tool: z.string(),
+  decision: z.union(['allow', 'ask', 'deny'] as const),
+  reason: z.string().default(undefined as unknown as string),
+  argument: z
+    .object({
+      path: z.string(),
+      equals: scalarSchema,
+      contains: z.string(),
+    })
+    .default(undefined as unknown as ArgumentSchemaOutput),
+})
 
 /** Schemastery config validator; semantic checks run once more in `compilePolicy`. */
 export const Config: z<Config> = z.object({
   defaultDecision: z.union(['allow', 'ask', 'deny'] as const).default('deny'),
   trace: z.boolean().default(false),
-  rules: z
-    .array(
-      z.object({
-        tool: z.string(),
-        decision: z.union(['allow', 'ask', 'deny'] as const),
-        reason: z.string().default(undefined as unknown as string),
-        argument: z
-          .object({
-            path: z.string(),
-            equals: scalarSchema,
-            contains: z.string(),
-          })
-          .default(undefined as unknown as ArgumentSchemaOutput),
-      }),
-    )
-    .default([]),
+  preset: z.union(['read-only', 'mcp-approval'] as const).default(undefined as unknown as 'read-only'),
+  rules: z.array(ruleSchema).default([]),
+  appendRules: z.array(ruleSchema).default(undefined as unknown as ReturnType<typeof ruleSchema>[]),
 }) as unknown as z<Config>
 
 function createTrace(toolName: string, evaluation: PolicyEvaluation): PolicyDecisionTrace {

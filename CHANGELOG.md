@@ -18,4 +18,6 @@
 
 ## Unreleased
 
-Future changes will be recorded here.
+### Fixed
+
+- Explicitly include the validated `@deepseek-ai/dsh-tools` `0.1.1-rc.2` version in the peer range; other prerelease versions are not added by this change.

@@ -26,7 +26,7 @@ After publication, install it with `pnpm add @drifter-yh/dsh-tool-policy` and ad
 
 Repository: https://github.com/Drifter-yh/dsh-tool-policy
 
-The repository includes pure matcher tests, ToolRuntime plugin tests, a real Cordis Loader composition, and an opt-in argument-free policy decision trace. It is validated against the public Harness `0.1.0-rc.6` packages and upstream commit `47f943859bef60e4160492346772ded9b24f765a`.
+The repository includes pure matcher tests, ToolRuntime plugin tests, a real Cordis Loader composition, and an opt-in argument-free policy decision trace. The recorded validation baseline uses the public Harness `0.1.1-rc.2` packages and upstream tag `dsh-v0.1.1-rc.2` at commit `b150a551b8d465e31e418e1b2eaf5e79bbb7d28e`.
 
 Feedback requested:
 
