@@ -139,6 +139,29 @@ Harness profile patch 根据 id 定位 row，并替换它的整个 `config`；�
 
 插件挂载后，在工具调用层默认采用 fail-closed 行为：默认 decision 是 `deny`，因此只有显式允许的调用会运行。只有在明确要部署 targeted 或 advisory policy 时，才设置 `defaultDecision: allow`。
 
+## 路由预设
+
+两个可选起点会在编译前展开为普通规则：
+
+- `read-only`：`{ tool: 'read_*', decision: 'allow' }`。
+- `mcp-approval`：`{ tool: 'mcp__*', decision: 'ask' }`。
+
+除非显式设置 `defaultDecision`，两者都保留默认拒绝。这些规则只匹配名称：名为 `read_*` 的工具未必真正只读，`mcp__*` 也不覆盖非 MCP 的外部工具。请检查实际工具并按部署需求调整规则。
+
+```yaml
+preset: mcp-approval
+rules: # 首先匹配：覆盖这个工具的预设行为
+  - tool: mcp__trusted__read
+    decision: allow
+appendRules: # 在预设之后匹配
+  - tool: read_record
+    decision: allow
+```
+
+完整顺序是 `rules`、预设规则、`appendRules`，第一条匹配规则生效。追加规则不能覆盖之前已匹配的规则。不使用预设时，原有 `rules` 行为不变。trace 的规则编号对应展开后的顺序。TypeScript 中可通过两个 package 入口导出的 `expandPolicy(config)` 验证并取得可 JSON 序列化的普通 `{ defaultDecision, rules }`，用于检查或保存；`compilePolicy` 在求值前展开相同配置。
+
+预设只负责逐次调用路由，不能替代 Harness 沙箱和审批配置。请为 `ask` 配置 Harness 审批服务及处理器，并使用限制性 Harness 沙箱约束能力。
+
 ## 配置
 
 ```yaml
@@ -256,7 +279,7 @@ DeepSeek Harness 将 MCP tools 暴露为 `mcp__<serverName>__<rawName>`，因此
 
 ### 下一步
 
-- [ ] 为常见 MCP 和无人值守部署增加可复用的 routing-oriented policy preset
+- [x] 增加可复用的路由策略起点
 - [ ] 增加可直接复制的 MCP、filesystem 和 unattended-agent 配置 recipes
 
 ### 未来

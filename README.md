@@ -139,6 +139,29 @@ Add the community plugin directly to a Cordis composition. This example is expli
 
 The plugin is fail-closed at the tool-call layer when mounted: the default decision is `deny`, so only explicitly allowed calls run. Set `defaultDecision: allow` only when intentionally deploying a targeted or advisory policy.
 
+## Routing presets
+
+Two optional starters expand into ordinary rules before compilation:
+
+- `read-only`: `{ tool: 'read_*', decision: 'allow' }`.
+- `mcp-approval`: `{ tool: 'mcp__*', decision: 'ask' }`.
+
+Both leave the default decision at `deny` unless you explicitly set `defaultDecision`. They match names only: a tool called `read_*` is not necessarily read-only, and non-MCP external tools are not covered by `mcp__*`. Review the actual tools and adjust the rules for your deployment.
+
+```yaml
+preset: mcp-approval
+rules: # evaluated first: overrides the preset for this tool
+  - tool: mcp__trusted__read
+    decision: allow
+appendRules: # evaluated after the preset
+  - tool: read_record
+    decision: allow
+```
+
+The complete order is `rules`, the preset's rules, then `appendRules`, with the first match winning. An appended rule cannot override an earlier match. Without a preset, existing `rules` behavior is unchanged. Trace rule numbers refer to this expanded order. In TypeScript, `expandPolicy(config)` (exported from both package entry points) validates and returns the plain, JSON-serializable `{ defaultDecision, rules }` for inspection or storage; `compilePolicy` expands the same configuration before evaluation.
+
+These presets route individual calls; they do not replace Harness sandboxing or approval configuration. Configure the Harness approval service and handler for `ask`, and use a restrictive Harness sandbox to enforce capabilities.
+
 ## Configuration
 
 ```yaml
@@ -255,7 +278,7 @@ DeepSeek Harness exposes MCP tools as `mcp__<serverName>__<rawName>`, so an `mcp
 
 ### Next
 
-- [ ] Add reusable routing-oriented policy presets for common MCP and unattended deployments
+- [x] Add reusable routing-oriented policy starters
 - [ ] Add copyable MCP, filesystem, and unattended-agent recipes
 
 ### Future
