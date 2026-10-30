@@ -13,7 +13,7 @@ await ctx.plugin(Include, { path: './cordis.yml', initial: [] })
 const fixture = await import('./fixture.ts')
 await ctx.loader.await()
 
-// The fixture starts after the included tree activates. Await its completion so
-// this executable remains deterministic for both the demo and the integration test.
-await fixture.completed
+// Start tool calls only after all loader entries, including policy, have activated.
+if (fixture.runFixture === undefined) throw new Error('Loader fixture did not activate')
+await fixture.runFixture()
 await ctx.fiber.dispose()
